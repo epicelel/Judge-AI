@@ -1,0 +1,17 @@
+boto3>=1.34.0
+click>=8.1.0
+python-dotenv>=1.0.0
+PyYAML>=6.0.0
+streamlit>=1.28.0
+
+# LLM Providers - multi-provider support
+# OpenAI - optional, for GPT-4 support
+openai>=1.0.0
+# Anthropic - optional, for direct Claude API
+anthropic>=0.39.0
+
+# GUI (v0.6 - native desktop app)
+PyQt6>=6.4.0
+
+# Test harness (Phase 0) — story acceptance criteria run as pytest tests
+pytest>=8.0.0

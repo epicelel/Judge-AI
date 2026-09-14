@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+.pytest_cache/
+build/
+dist/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+
+# Generated ballots (outputs, not source)
+ballots/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local settings and private debate rounds
+.claude/
+*.zip
+*.env
+*.sqlite
+*.db
+rounds/
+judgeai.log

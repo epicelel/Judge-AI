@@ -1,0 +1,614 @@
+You are an experienced World Schools debate judge evaluating a debate for 
+grades 9-12. World Schools debate is a three-on-three format focused around a 
+specified motion. Teams persuade through substantive argumentation, strategic 
+engagement, and effective delivery. Your role is to objectively evaluate 
+competing teams, removing all personal biases. You are determining which TEAM 
+was more persuasive in the round based on Matter, Manner, and Method.
+
+
+CRITICAL: You must evaluate based ONLY on arguments the debaters made, NOT on 
+your personal opinions or arguments you would have made.
+
+================================================================================
+JUDGING PHILOSOPHY (NOF World Schools Standards)
+================================================================================
+
+1. THE THREE PILLARS OF EVALUATION:
+   - MATTER (Content): The substance of arguments — logic, reasoning, examples,
+     and analysis used to support or oppose the motion.
+   - MANNER (Style): The persuasiveness of delivery — clarity, tone, pace, eye 
+     contact, use of language, and rhetorical effectiveness.
+   - METHOD (Strategy): The structure and organization of the debate — how well 
+     teams set up their case, allocate roles, prioritize arguments, respond to 
+     opponents, and manage the overall debate strategy.
+
+2. LOGIC AND GENERAL KNOWLEDGE OVER CITATIONS:
+   - Debaters should primarily rely on LOGIC and GENERAL KNOWLEDGE to support 
+     their case.
+   - Debaters shall NOT cite published sources during the round.
+   - As a judge, you must give MORE WEIGHT to claims supported by strong 
+     general reasoning and logic than claims supported purely by a citation.
+   - Reward analytical depth, creative reasoning, and well-constructed logical 
+     arguments.
+
+3. CASE CONSTRUCTION:
+   - Teams should present a clear TEAM LINE (thesis/model) that frames their 
+     position on the motion.
+   - The Proposition team proposes a case to UPHOLD the motion.
+   - The Opposition team OPPOSES the Proposition team's case.
+   - Arguments should be logically structured with:
+     * ASSERTION: A clear claim
+     * REASONING: Logical explanation of why the claim is true
+     * EXAMPLES/ILLUSTRATION: Support through general knowledge, analogies, or 
+       logical scenarios
+     * LINK BACK: Connection to the team line and the motion
+   - Role fulfillment: Each speaker should fulfill their designated role 
+     (1st sets up case, 2nd extends/rebuilds, 3rd summarizes/crystallizes).
+
+4. ENGAGEMENT AND CLASH:
+   - Teams MUST engage with their opponents' arguments directly.
+   - Rebuttal should be specific, not generic.
+   - Teams that "ship in the night" (talk past each other) should not be 
+     rewarded.
+   - The best debates feature direct clash on key issues.
+
+5. POINTS OF INFORMATION (POIs):
+   - POIs may be offered during the first six substantive speeches ONLY 
+     (NOT during reply speeches).
+   - POIs may NOT be offered during PROTECTED TIME (the first minute and last 
+     minute of each speech).
+   - POIs may take the form of a question OR a statement — both require a 
+     response from the speaker.
+   - POIs should be roughly 15 seconds in length.
+   - Time does NOT pause during POIs (they are at the speaker's discretion).
+   - If a POI is rejected, no member of that team may offer another for 15 
+     seconds.
+   - Speakers should ACCEPT at least 1-2 POIs per speech.
+   - Teams should OFFER POIs regularly during opposing speeches.
+   - Evaluate both the quality of POIs offered and how well they are answered.
+   - Refusing all POIs or failing to offer them should be noted negatively.
+
+6. NO NEW ARGUMENTS AFTER SECOND SPEAKERS:
+   - No new arguments are permitted after the second speaker from each side 
+     has spoken.
+   - Third speakers should summarize, crystallize, and weigh existing arguments 
+     — NOT introduce new material.
+   - Reply speeches are persuasive summaries identifying key clashes and 
+     explaining why their team wins on those issues.
+   - New arguments in 3rd speeches or reply speeches should be disregarded.
+
+7. REPLY SPEECHES:
+   - Reply speeches may ONLY be given by the 1st or 2nd speaker, NEVER the 
+     3rd speaker.
+   - Reply speeches are biased adjudications — they should identify 2-3 key 
+     issues and explain why their team has won each.
+   - They should offer a clear framework for the judge to evaluate the debate.
+   - Opposition reply speaks FIRST, then Proposition reply speaks LAST.
+
+8. DELIVERY STANDARDS:
+   - Delivery should be EXTEMPORANEOUS, not manuscript.
+   - Debaters may use handwritten notes made after the motion was announced.
+   - Reading from pre-written material is not permitted and should be 
+     penalized under Manner.
+
+9. BURDEN OF PROOF:
+   - Proposition must prove the motion is true/desirable.
+   - Opposition must prove the motion is false/undesirable.
+   - Both teams share the burden of engagement — they must respond to each 
+     other's strongest arguments.
+
+10. DEFINITION AND FRAMING:
+    - Proposition typically sets the definition/framing of the debate.
+    - Definitions should be reasonable, clear, and debatable.
+    - Opposition may challenge unreasonable definitions but must offer an 
+      alternative and debate both interpretations.
+
+11. WEIGHING AND COMPARISON:
+    - The best debaters don't just present arguments — they WEIGH them.
+    - Teams should explain why their arguments matter MORE through:
+      * MAGNITUDE: How many people are affected / how significant is the impact?
+      * PROBABILITY: How likely is this outcome?
+      * URGENCY/TIMEFRAME: When does this matter?
+      * PRINCIPLE: What fundamental rights or values are at stake?
+
+12. INFO SLIDES (if applicable):
+    - If the motion came with an Info Slide, its content should be considered 
+      objective context.
+    - Debaters may refer to Info Slides during the debate.
+
+================================================================================
+SPEECH ORDER AND TIMING
+================================================================================
+
+Prep Time: 60 minutes
+1st Proposition Speech: 8 minutes
+1st Opposition Speech: 8 minutes
+2nd Proposition Speech: 8 minutes
+2nd Opposition Speech: 8 minutes
+3rd Proposition Speech: 8 minutes
+3rd Opposition Speech: 8 minutes
+Opposition Reply Speech: 4 minutes (given by 1st or 2nd Opposition speaker)
+Proposition Reply Speech: 4 minutes (given by 1st or 2nd Proposition speaker)
+
+Protected Time (no POIs): First 1 minute and last 1 minute of each 
+substantive speech.
+
+================================================================================
+EVALUATION CRITERIA
+================================================================================
+
+Each SUBSTANTIVE speaker (1st, 2nd, 3rd) is scored in THREE categories:
+- CONTENT: 24-32 points
+- STYLE: 24-32 points
+- STRATEGY: 12-16 points
+- TOTAL per substantive speaker: 60-80 points
+
+Each REPLY speaker is scored at HALF scale:
+- CONTENT: 12-16 points
+- STYLE: 12-16 points
+- STRATEGY: 6-8 points
+- TOTAL per reply speaker: 30-40 points
+
+SCORING GUIDE (substantive speaker totals):
+- 60-65: Below average — significant gaps in argumentation or delivery
+- 66-70: Average — competent but unremarkable performance
+- 71-74: Good — solid arguments with effective delivery
+- 75-77: Very Good — strong, persuasive, well-structured performance
+- 78-80: Excellent — outstanding performance, exceptional skill
+
+Consider for EACH speaker:
+
+CONTENT (24-32 points) — What debaters say:
+- Strength and originality of arguments
+- Quality of logical reasoning and general knowledge application
+- Depth of analysis (not just assertion)
+- Relevance to the motion and key issues
+- Effectiveness of rebuttal (specific and impactful?)
+- NOTE: Penalize reliance on citations over reasoning
+
+STYLE (24-32 points) — How debaters say it:
+- Extemporaneous delivery (not reading from manuscript)
+- Clarity and fluency of expression
+- Persuasiveness and confidence
+- Appropriate pace, tone, and volume
+- Eye contact and physical presence
+- Use of rhetorical devices and language
+- Professional demeanor and civility
+
+STRATEGY (12-16 points) — How debaters organize the debate:
+- Clear structure and signposting
+- Role fulfillment within the team (especially 3rd speakers crystallizing, 
+  not introducing new arguments)
+- Prioritization of arguments (strongest first)
+- Time management
+- POI engagement (offering and accepting)
+- Strategic allocation of rebuttal vs. constructive material
+- Weighing and comparison of arguments
+
+================================================================================
+DEBATE DETAILS
+================================================================================
+
+Motion: This house believes that the global south should refuse climate commitments until historical emitters pay reparations. 
+
+Info Slide (if applicable): [Insert info slide text or "N/A"]
+
+Proposition Team: Prop
+  - 1st Proposition: Queena
+  - 2nd Proposition: Maggie
+  - 3rd Proposition: Athena
+  - Reply Speaker: Maggie
+
+Opposition Team: Opp
+  - 1st Opposition: Alison
+  - 2nd Opposition: Sherbano
+  - 3rd Opposition: Kingston
+  - Reply Speaker: Sherbano
+
+================================================================================
+TRANSCRIPT
+================================================================================
+[Paste the full debate transcript here, including all speeches:]
+
+--- 1st Proposition Speech - 8 minutes ---
+[00:00] A fire breaks out any shared building. One group of residents
+[00:06] uh accidentally cost it decades ago, but benefit from the electricity system that led to it. Now at the Demish spread, they asked everyone, including those who had little role in starting it, to pay equally for rebuilding. Most people would recognize this as unfair, yet this is the logic that often underlies glob glob global climate cooperation today. Good day to the respectful
+[00:33] judges, teachers, chairperson, and my wealthy opponents. My name is Queen A X and I'm so honored today to be your first speaker on side affirmative to debate the motion that this house believes that the Global Thoughts should review the climate admittions until historical admitted parishions. So before I start I would like to thank everyone who's in this room listening to my speech including my beyond compare teammates Athena Thing and Meggy Way. So now I'd like to start off my today's speech by telling you judges the things I'm going to do for you today. So first I as the first speaker I would be giving out a motion and then the framework. And then also I will be providing my two arguments for this round and finally if time allows I would also be sharing my preview bottles at the end of my speech. So now let's move on to so the motion refers to the idea that countries in the global thousand should refuse to adopt or continue with new or additional climate competitions and international agreements to domestic policies until historical and it is provide meaningful and delivered climate reparations. We believe that the winners of this route today judge should be the side that ultimately proves whether or whether or not climate change can be reduced faster with paration because that is the goal at the end of the game. So by refuse we mean that these
+[02:06] To new emissions, reducing targets, implementation obligations, or strengthened climate policies in international negotiations, or delay their adoption of commission. This refusal is a conditional. It applies specifically in situations where added kids' claims reparations such as final support technology transfer and lost and damage founding have not yet been provided by historical editors. The debate is therefore about where is this justified for the global thoughts to use non coroperation on climate committees as Bloodridge to see core climate justice and the from the reparations from historically high emitting development countries. So now, Judge, please let me introduce you my first argument. So if we accept climate committees from the global thoughts before historical emitters pay reparations, we are not just allowing a one time unfair burden. We are turning that unfairness into a parent rule of the international system. Think of this way, judges. This is like establishing a
+[03:34] Global principle or countries that cause the majority of environmental harm are still allowing to define how the problem is solved. Well the countries suffering from that harm are required to participate equally and the other.
+[03:47] For example, the countries like the United States and United Kingdom industrially aided
+[03:53] early and build on their economic strengths through decades of high emissions. That process create more than wealth.
+[04:01] Trend.
+[04:02] Ucre and a global power. Meanwhile, countries like
+[04:06] Bingle contribute very little historical emissions, but now facing ri ris rising sea levels, floating and disappointment that threatens millions of lives.
+[04:18] Now under the current climate framework
+[04:21] These same vulner uh v v vulnerable countries are still expected to
+[04:27] Hake
+[04:32] Compensations. That means they must spend limited national resources to reduce emissions, even though they are not the primary cost for the crisis they are trying to solve. The impact of this, Judge, is not just on fair distribution of cost. The deeper impact is that it walks in the global norm where res res res res res res res res res responsibility is
+[04:51] Disconnected from contribution.
+[04:54] So now moving on to my second contention, Judge. If climate change cities are accept without reparations, the
+[05:03] admitted effection is that developing countries are forced to find expressive
+[05:10] climate transitions using their own limited national budgets.
+[05:15] This does not happen in isolation. This directly competes with
+[05:21] Ethical public spending.
+[05:23] For instance, a country like India, the government still faces massive development demands such as expanding electricity access, improving health care systems, building
+[05:35] and reducing poverty across a large population.
+[05:40] Now climate change committees require significant
+[05:44] Investment in renewable energy systems.
+[05:49] Risrupting and environmental regulation. While these goals are important, they are extremely costly.
+[05:58] External
+[05:59] Financial support.
+[06:02] uh reparations, governments must file these changes surely.
+[06:07] Now the deeper impact is that global
+[06:10] And equally it becomes struggling reformed.
+[06:13] Countries that historically developed.
+[06:16] Through low cost also usage, such as the United States are now able to transition using
+[06:25] Oh Q uh and events
+[06:29] Infrastructure.
+[06:31] In contract, developing countries must pur the same transition while still struggling to meet basic development standards.
+[06:40] Therefore, the impact is not only short time.
+[06:43] earn economic for such. But a long term
+[06:48] entrench of global inequality, where the burden of summing climate change falls.
+[06:56] dispropriationally on those lease.
+[07:00] Webb to beer it.
+[07:02] So without oh okay. Now um moving uh let's zoom uh to my preview bottles. So the opposition is most likely to state that climate change is so urgent that earnest should not matter. And that any delays in action makes the crisis worse. We respond that as a assumed refusal leads to meaningful global
+[07:25] Which is incorrect.
+[07:27] The main drivers of global emissions remain large industrial economies and historical emitters such as the United States and other developed states. Even if the global thoughts still list additional committees
+[07:41] It does not significantly change the
+[07:47] causes for emissions.
+[07:49] So in conclusion, Judge, this debate is not about whether climate change is real or whether action is necessary. Both sides agree that urgent action is needed. So therefore, what opposition must justify is not simply action. We agree on that. They must
+[08:09] Justified. So for all those strong regions above.
+[16:30] So so proud to stand here at the first speaker of side of the side that wins this route of today. Thank you.
+
+
+--- 1st Opposition Speech - 8 minutes ---
+
+[00:00] Nice.  
+[00:08] For example,  
+[00:21] Wants you to say. I will.  
+[00:25] That's it.  
+[00:29] Should be.  
+[01:15] contain the fire not hold the car  
+[01:21] is already being harmed by climate change. How does accepting these unfair commitments without funding reduce that harm? If they're already sorry, I'll say that again. If the global south is already being harmed by climate change, how does accepting these unfair commitments without this funding reduce that harm? Commitments and demand  
+[02:02] I don't believe we clearly define the terms that we're using to speak. So you could like to define it.  
+[02:19] Okay.  
+[02:20] Industrialized.  
+[02:23] You Germany uh emitted the majority of some since eighteen fifty.  
+[02:30] Compensate for damages caused.  
+[02:35] financial compensation from sports to the  
+[02:56] To show that.  
+[03:06] And Justice now.  
+[03:09] Their burden.  
+[03:13] Commitments is the Global South strongest leverage to force the emitters to pay refreshments. They have to prove that this is.  
+[03:24] They don't have enough money under damage. Second cooperation gets more favors than competition. And cooperation establishes lines. They can do it. So why would the proposition comment to refuse? Our second speaker will extend on negotiation dynamics and show how refusing gives emitters excuses to board people. So let's start. Refusing climate commitments harms the global house more than it pressures. It's a physical process. It does not cause while negotiations continue. It doesn't wait for reparations to be done. Every year of delayed climate action increases environmental, economic, and social costs. The proposition might as well commitments punishes a world.  
+[04:35] Temperatures or future cards. Seeing that confirmed socks should not make a computer. That is vastly beneficial to them.  
+[04:51] Solution does not will not and does not stop.  
+[04:58] South will suffer. And yes, they deserve compensation, but refusal to comply is not the way to do it. We would be encouraging countries that historically struggle with multiple challenges to reject climate commitments in pursuit of an unforeseeable future where payment is highly uncertain. There's no guarantee. There's no way to tell how long it will take for those payments to be made. And in the meantime, the global south still sacrifices their own future. Burning your own house down because you bumped into walls is not functional. The countries in the global south are simply not at the point to absorb this yet. The global south is widely known to be a set of countries that struggle with finances. Not cooperating with these commitments is simply not a decision they can make. They're not at a strong enough level to do so. They're not strong individual countries. They're commonly known to be a powerful struggling underdeveloped countries. And even if it is unfortunate, the global south is simply not in the position to make such decisions to get payments to make up for historical damage. Reparation should be made because wrongs were done, but this is not the way to do it.  
+[06:04] D  
+[06:05] Saying you won't comply just because something wrong was done to you, that's just not the way to do it when the global south is not financially in that kind of position. We would only be further harming these countries. Yes?  
+[06:20] Is it not more harmful to lock global south countries into the underlying climate transitions than to delay unfair obligations until uh repar uh reparations exist?  
+[06:34] Well that's not locking. We're trying to say that that's the smart path. Because accepting commitments while demanding reparations is how we get leverage. And when you refuse you're out of the conversation. Historical em emitters can ignore you, but when you commit you're at the table, you can vote, negotiate and hold them accountable.  
+[06:57] And to keep going. We would only be further harming these countries since all they must do is pledge to aim for less greenhouse gas emissions, and waiting for revenge money is something they don't have time for. Not to mention that so many countries in the global south are extremely polluted. Climate change doesn't wait for compensation. It won't stop while they beg for reparation. It keeps going, keeps harming them. Something they alone can not fight. The proposition is telling impoverished countries to gamble their people's survival on payment that might never come. Second cooperation is a more effective way to secure future support and meaningful climate action than withdrawal. The proposition will claim that refusing commitments creates leverage. We disagree. International relationships are built through trust, climate policy, and safe development. These relationships create opportunities for future support and future negotiation. Cooperating with others sets the stage for small countries like the ones in the global south. Without cooperation with major developed countries, the global south risks losing favor with large companies they can't absorb.  
+[07:59] It is a fact that support from big countries is what they need, not to be on their bad side while waiting for compensation. They need to show cooperation and commitment for their own good.  
+[08:09] The global south cannot be the one bargaining for money when they are the weakest. The larger co countries will not struggle to shut this down. Something the global like a again, something the global south can't absorb. They simply do not have the means to play this receipt party. They need support first.  
+[08:24] The proposition is telling the weakest players in the world to play a game they will lose. Again, they can do both. It's best for the s survival of these countries that they agree to climate commitments, and they can absolutely do both.  
+[17:13] tell the global the global south to sacrifice their entire their in their own survival for a gamble. This is self-defeating. This is counterproductive. Next our second speaker Gravano will now expect stand on the negotiation diner dynamics and show how our zinc gives the mayor's excuses to avoid pain.   
+
+
+--- 2nd Proposition Speech - 8 minutes ---
+[00:00] Um I prefer verbal POI, so it would be great if you could just say POI. Uh Ayushi her pronouns. So without further ado, time starts on my first word.  
+[00:15] Judges, climate change is often presented as a shared global responsibility, but not all responsibility is equal. Some countries built their wealth over a more than a century of heavy industrialization powered by fossil fuels, while others were still developing or colonized during that same period. So this debate is not whether climate action is necessary. It absolutely is. The question is whether it is fair to demand equal commitments from countries that do not equally cause the problem before reparations are paid. Good day, Judges. My name is Maggie, and today I will be your second speaker on the side proposition. Today I'll be doing a couple of things. First, I'll be doing some refutations, then I'll be getting two substantive points of my own. So first, I want to reject the framing that our burden is to guarantee that reparations will happen in the end. That is really not the test of our debate. So we reject the burden that our opponents give. Instead, we offer our alternative. Our burden is to compare the world. In their world, the global south makes unconditional climate commitments, and there's no incentive structure forcing reparations to actually materialize. History shows that voluntary promises of climate finance are consistently under delivered, as we see from the examples listed from my partner. Second, in our world, commitments are made conditional on justice, which creates political and economic pressure on historical emitters to actually negotiate and pay. So the real question and the burden of this debate is not can we guarantee reparations. No side can actually guarantee future political outcomes. That's completely like unfair. But the real question of this debate is which world makes reparations more likely and creates a fairer climate system overall. That is the question of the debate. Who can answer that the most fairly is going to be the side that wins today. Now, before I go on to a response to their one contention, in response to a POI, my opponents literally acknowledge that these climate commitments will be underfunded. Therefore, they completely acknowledge and concede to the fact that countries that do undergo these climate commitments will be underfunded, uh will be underfunded at the time of which they do so. So I would just like to preface this and make this dominant first off in the round. Now, I'll be going on to refute their one contention that they give us. The global south is harming themselves. I have three responses to this. First, the global south is literally already being harmed under the current system. They are facing the worst impact of climate change. We can see so in Delhi. We can see so in the air pollution in China, while also lacking the funding and technology needed for a proper transition. So the idea that accepting the status quo avoids harm is completely incorrect. The harm is already happening. Second layer of analysis on this is no thank you. Second, refusing climate commitments without reparations is really not self-harm. It is leverage. So they try to deny this, but we respond to that by saying the only reason why wealthy countries have any incentive to provide climate finance or reparations is if their cooperation is conditional. Conditional. If the global south continues to accept obligations, regardless of payment, then the global north has no reason to change anything. This means more long-term harm, not less. We don't we don't really see any realistic scenario from their side that they can give us that alternatively gives us a better future overall. Third and last layer of analysis. This is about sequencing, not denial of this strategy. We are not saying never act on the climate. I think this is actually misconceptionalized on their side of the house because they think that our side is just pushing for no climate change removal at all. But we are saying that there should be no fair act without responsibility first. Once reparations are paid, the global south is actually in a stronger position to reduce emissions faster and more effectively because they finally have the resources to do so. Now that I've refuted the entire speech of the last speaker, I will now go on to my own constructive. First, my C1 on inequality. Judges, climate commitments without reparations do not like create fairness. They simply do not. However, what they do is lock in global inequality and make it permanent. You might be wondering how exactly does this happen. Research actually shows that United States and Europe alone account for a dominant share of emissions since the industrial revolution. Well, many global South countries contributed only a small fraction during the period when the damage was actually locked in. Yet, these same countries are now being asked to follow the same climate obligations, the same obligations that they did not create in the first place. At the same time, it's clear that climate action requires support. They require some sort of financial support. But developing countries do not have the same fiscal space that wealthy countries had when they were actually industrialized. The difference between America and China is actually very stark, especially when they were developing. They're being told to decarbonize while still trying to build basic systems like electricity access, transport, and healthcare, as we can see that is so pertinent in situations like Africa. That means that climate commitments are not neutral at all. They're structurally harder for poorer states. So this creates a double standard. The impact of this contention is permanent inequality. If developing countries are forced to divert scarce public funds into expensive transitions without any compensation, they spend less on schools, hospitals, and infrastructure. I will take that now. Well, you still want the global south to make climate commitments.  
+[05:43] Absolutely. Next, going on to the my second my second contention, which is on green extraction. Judges, even if climate commitments sound fair on paper, even if you buy what our opponents say, in practice, they actually create a new form of exploitation in the global south. How exactly does this work? To build green energy systems, wealthy countries need massive amounts of raw materials like, for example, iron, cobalt, any sort of materials to actually build infrastructure. A large portion of these resources are located in the global south, which is why they suffered so much from the green gases. But without reparations, these poor countries in the global south often do not have the bargaining power to actually barter with these countries. So without technology or capital to control how these resources are actually transportated or extracted, rich countries gain most of the value. At the same time, the cost also stays local. Mining leads to polluted water. These resources lead to damage land and displaced communities. So the global south is not only dealing with climate impact, they're also absorbing the environmental damage of the solution to climate change. So what happens is simple, fossil fuel extraction gets replaced by other things like resource extraction. But the pattern stays the exact same. Wealthy countries get the benefits of this transition, while poorer countries carry the cost of resource extraction. So you can see that the trade off here is very clear. Fossil fuel extraction turns into resource extraction, which means that if we do not make a move on on reparations to help these poorer countries develop even further so that they can actually make themselves a name in this market, then we are actually failing ourselves, and we are permanently putting these countries into a hierarchy, a pyramid that cannot be undone. Now, the impact of this contention is that climate policy stops being something of like correcting injustice. However, it instead becomes a continuation of it under a new label. It's like hiding behind a mask. The global north gets to call it going green while still relying on the unequal extraction of the global south. That means that inequality in of itself is not solved, but it is rebranded. The only way we see this equality solved is under our side of the house, not our opponents. So that is also a factor of which we win this debate today. Judges, if going green still depends on extracting from the same countries that suffered the most, then climate action is not change. It is the same exploitation with a different name. Judges, this debate is not about rejecting climate action, it is about fairness. Those who cause the crisis must take responsibility before others are asked to sacrifice. Until these reparations are paid, these commitments are not cooperation, but they are an imbalance. For that reason, I am so proud to stand today on side proper proposition. Thank you.  
+
+--- 2nd Opposition Speech - 8 minutes ---
+
+[00:00] Our system is flawed, and this motion isn't doing anything for that. All it is doing is risking the countries in the global south under the vision of an unforeseeable future of compensation. But the countries that want it from are bigger, richer, more developed. They don't need to pay. They have no obligation. The pollution won't pay for that paymon, that payment. Climate change will happen. The truth is the global south is weak. And not in the presentation to bargain nor deny this kind of commitment. It's sad that they are weak. They're too weak to get the reparation deserved. But it is the truth. And truth will always prevail over emotion. They need to c they need the commitment to get future favors and the commitment to help their country. And they need it to gain strength and needed to give them leverage to at some point get their payment.  
+[00:50] They need it so they have the good reputation can get their payment because the best option here is to do both. They cannot just choose to wait until the reparations come because they might never come. And while they wait, their countries are being destroyed. They're not making money, nothing is happening, nothing is being solved while they wait. And for this reason, not agree with this motion.  
+[01:13] Are you assuming a perfect world where wealthy countries voluntarily and fully pay reparations without any pressure or incentives, despite decades of under-delivered climate finance commitments?  
+[01:27] Actually I said the exact opposite of that. I said we live in a world where the system is flawed and where the global south countries in the global south will be left waiting for the payment that may never come. That is the whole point. The future is unforeseeable. We will never know if that payment comes, and it is highly likely these rich developed countries will never pay it because there is no obligation to pay it. They have no leverage. However, ha if these countries were to commit to the climate commitments, that would give them more leverage because they would have more commitment. They have would have more in it with these larger companies co co co countries. Now for I would like to start off by rebutting some of my opponent's points. One thing they said is that the inequality that is being c that that is already happening will o will will will will will only be.  
+[02:11] rebranded in the case that the global south made these climate commitments and that the inequality would only be solved under their side. However, first of all, they were very vague in how their side would solve the inequality. And second of all, it would be solved on our side by the simple fact that they're choosing to ignore. My first speaker and I all both said the same thing. The global south can make the choice to do both. To do both in the case that they are protected when the reparations aren't coming and they are protected so that reparations do eventually come. Waiting and doing nothing will not get the reparations here. In fact the proposition even admitted that they are not saying the reparations will ever come. They're just saying it might come. It might come by waiting and doing nothing when watching countries deteriorate countries that are weaker and poorer fall apart.  
+[03:01] They they're first substantive where it's not.  
+[03:07] If we expect if we accept  
+[03:10] climate commitments, that creates inequality because the countries that are smaller in the global south had less to do with the c with with the emissions that damage the environment. However  
+[03:20] not joining is not helping them.  
+[03:22] Not joining is actually giving them absolutely nothing. They will be at a complete stalemate, completely stationary, no forward movement. They'll be stuck in place while the pollution takes over because they have no help. And sure, the opposition, the proposition is attempting to argue by joining, they will be forced to pay more and they will not be able to do it. And it's unfair and it's unequal. But the problem remains the fact that if they don't join, these countries, they are weak. They are poor. They don't have the power to do anything. If they don't join, they're stuck in a stationary point. There is no forward movement, there's no reparations, there's no repair, nothing is happening.  
+[03:55] You want.  
+[03:57] They say that it's about that climate change is shown as global responsibility, but it is not equal.  
+[04:07] Climate change is not equally coming from every place. But it is still a global issue. Because even if Bangladesh and United States of America had completely completely different amounts to do with carbon emissions, they still both are suffering, which means they both need to come together to solve the problem. Because if we all split ourselves away based off of the fact  
+[04:27] That's not always equal.  
+[04:29] then we're going to break ourselves apart. I'll take that P O I.  
+[04:32] So just to clarify, under your world, you want to do both. You want to do both climate commitments and pay these countries. So I want to ask you, which one comes first, climate commitments or other countries paying these reparations?  
+[04:45] I think it was made very clear that they would first have to make the climate commitments in order to get the leverage that they need to get these reparations. Because without making the climate commitments first, they're a stationary point in which they have no hope and no reason to  
+[04:59] to be given these reparations.  
+[05:02] Now to return to my rebuttals, they rejected our burden and continued on to say that their burden is to compare worlds  
+[05:10] And that they do not have to prove that they are guaranteeing reparation, but rather trying to show which of our worlds has it more likely. But that shows the hole in their argument. They're not even saying that on their side of the world no reparations will ever happen. They're actually agreeing with the fact that on their side  
+[05:28] The chances are likely that the global south will be left continuing to be stationary, unable to reach a f of a repair. However, in our world, where they were to agreeing to these climate commitments, that gives them some leverage. It gives them some  
+[05:44] commitments that create lines into the bigger countries that give them some reason to help.  
+[05:49] If the global south stay completely disconnected from the gl c c c climate efforts.  
+[05:53] And there would be no reason to give them the payments, and there would be no reason for that for for for for for for for for for for for bigger countries to help them in global climate issues.  
+[06:02] No.  
+[06:06] They say  
+[06:07] For more points from our side, saying that all these countries in the global south should not be able to make the commitment that is very beneficial is unreasonable because what they are doing is ruining them in the name of revenge, in spite of what the countries have done.  
+[06:20] They are ruining their own countries.  
+[06:24] Unfortunately as it sounds, the global south is not in the position of bargaining. They are not in a favorable position. They cannot set the terms, because the global south is infinitely weaker than countries like the UK and United States, both of which were examples used by the opponents.  
+[06:39] These countries are 10 times stronger, which means they have the favorable bargaining position. And the global south cannot bargain and say, I will not join until you pay me my reparations, until I have enough money.  
+[06:50] Because all they're doing is continuing to be in their stationary useless position, which means they cannot accomplish anything.  
+[06:59] is that one that the one major thing they can do is that they can do both.  
+[07:03] Which I've already mentioned multiple times.  
+[07:06] Proposition is immediately assuming that in our world, they're only committing to the climate efforts. They're not getting the reparations. But that is not at all what we're saying. Because we do agree it's quite unfortunate what the global south goes through. It's not fair that they don't get their compensation. But it's also not reasonable to expect these compensations to come out of nowhere where they haven't come from all these years. It's not fair to say that they'll just sit there and suddenly they'll appear.  
+[07:30] For no reason just because the proposition says they will.  
+[07:33] And for this reason, their point their their their their their their their their their their their point is completely unreasonable.  
+[07:40] For them to get the compensation they require, they need some form of leverage, since they're the weaker we we weaker bargaining force.  
+[07:46] And for this reason, we proudly oppose today's motion. Thank you.  
+
+--- 3rd Proposition Speech - 8 minutes ---
+
+[00:00] Over two centuries, all these nations build their growth with coal, oil, and gas. They built industries, infrastructure, and prosperity. Now, after climbing the ladder, they're asking developing nations to stop climbing without providing compensation for the damage all the time. That is not climate justice. It is climate hypocrisy. Good morning, esteemed judges. My knowledgeable accountants and the respectful audience. I'm Athena Fang and I'll be your third speaker on side proposition. Before I start, I'll like to thank those all physically today today. Our side, team proposition, strongly supports the motion today because we believe that climate change in the global early south should be repaired more than prepared. I'll be giving reputation and free reputation to my opponent's arguments. Then I will be defendant and extended of my teammates' contentions that build the foundation for my final conclusion.  
+[01:06] Judges, we reject the idea that this is a perfect world argument. In fact, it is the opposite. It is a realist argument.  
+[01:16] Our opponents are the ones assuming a perfect role. A world where we walking countries voluntarily pay the uh requirements on time fully and without uh pressure. Even though decades of climate negotiations and climate uh finance commitments have consistently been under uh under delivered or delayed.  
+[01:39] This uh we are dealing with the uh world as it actually is where incentives matter and in that world countries respond to pressure, bargaining power, and consequences for an action judges. When the opposition says that there is no obligation for countries to pay for countries, they are effectively admitted that in their world historical responsibility is off. That means there's no mechanism to correct the harm that has already been done. So in their world, countries that cause that cause most industries is no requirement hard to compensate. And climate finance remains voluntary and consistently on delivered. Ultimately, the burden of adjustment stays entirely on the world. That is not a mutual position. That is a world where past uh harm is never accounted for. Additionally, judges that is a ridiculous burden shift. We're not required to certainty that uh harshness will happen. No side can be future uh international compliance. If that were the standard, every policy debate about uh finance, treaties, or global uh uh uh uh uh uh uh uh uh uh cooperation would collapse. Our burden is uh comparative. Which model creates the strongest incentives for impartials to occur in their world. There is no pressure, no condition and no consequences for non-payment. So made voluntary and historically undelivered. In our world, cooperation is conditional. Which is exactly what forces historical admitters to take responsibility. So the question is not sensitive.  
+[03:37] I'll take that one.  
+[03:41] After I'm done.  
+[03:44] And only our side piece. Okay, I'll take that.  
+[03:50] You keep saying that the cooperation is conditional and for this reason the bigger countries will pay the global south. Can you please explain what you mean by that?  
+[04:01] Oh.  
+[04:02] Pardon me, Susan? You keep saying that cooperation is conditional and this will force country countries outside of the global south to pay them. Can you please explain what you mean by that and how that is possible?  
+[04:14] Um  
+[04:15] Yes, because these countries are part of the uh north.  
+[04:20] And um  
+[04:21] Do  
+[04:23] um substantially richer so that that that's why they are  
+[04:29] not uh uh uh uh uh uh uh uh uh uh uh incentivized um to pay these countries.  
+[04:36] Okay.  
+[04:37] Oh moving on.  
+[04:39] Judges, if the opposition agrees proportions should be key, then they should have already decided our principle of history as a spiritual responsibility. The only disagreement left is whether wealthy countries should receive cooperation before they fulfill that responsibility. And that makes no sense. If you owe someone money, you don't demand that they fulfill their side of the bargain, while your obligation remains an unenforced promise.  
+[05:11] Okay. Opposition claims that refuting climate uh commitments will worsen climate change and delay urgent action. But this is actually assumes that current climate commitments are actually affected in global south. The reality is that electronics.  
+[05:33] If you're unable to lie.  
+[05:37] I'll take that later.  
+[05:40] Okay. Fully implement them due to a lack of funding, technology, and capacity. So the problem is not refusing. It is under the resources. In that sense, opposition is defending a status quo where commitments exist on paper, but fail in practice.  
+[05:57] Um  
+[05:59] Position does not remove climate action. It changes the conditions so that becomes actually feasible by powering historical emitters to create reportions first.  
+[06:15] Um, I'll take that. So you see that incentives matter. But what incentives do historical emitters gain from paying reparations if the global south is no longer cooperating? And wouldn't countries be more willing to provide funding to partners who remain engaged rather than those who have drawn?  
+[06:35] Well then  
+[06:39] That is the first one.  
+[06:41] Moving on. Opposition also argues that cooperation is unnecessary and that refusing commitments undermines global needs. However, cooperation without fairness is not generally cooperation. It is in balance. Right now, global south countries are expected to take on equal or near equal responsibilities and emission reduction. While historical uh historically responsible responsible countries have not met their climate finance policies. Ultimately, the winner of this debate today are the ones who can see whether it is justified or not to have more emissions clean up for this crisis. We have to give more than enough reasons to think about our team. Thank you.  
+
+
+--- 3rd Opposition Speech - 8 minutes ---
+
+[00:11] Judge, throughout this debate, the proposition has attempted to frame this route as a debate about fairness. They told you that historical entities like the United States and Europe become wealthy through decades of missions. They told you that countries like Bangladesh contribute very little to climate change, but suffer some of its worst consequences. They have told you that climate violence has been delayed. And reparations have not been materialized. And judge by almost in fact we agree. Historical emitters bear greater responsibility. The global south deserves climate finance. The global south deserves loss and damage funding. The global south deserves reparations. But this debate is not about whether reparations are justified. If motions are this house believes historical admitted should pay reparations, proposition would probably win. But that is not today's motion. Today's motion asks whether the global south should refuse climate commitments until those reparations are paid. And when you strip away the language of fairness and justice. That is a gamble, not climate justice. And the people who pay the price for that gamble are the very people proposition claim to protect. So I want to organize proposition's case into three central claims in this mental each one directly. Clash one. They said that the fusel creates leverage. And this is the heart of the proposition's case. Their entire mechanism depends on one claim. If the global south refuses climate commitments, both the countries will finally feel enough pressure to reparations. Judge, notice something important. They never actually proved this. They simply just assumed it. Throughout the debate, they told us climate negotiations have failed for decades. They told us repeatedly under the promises are broken. And then they somehow conclude that abandoning climate commitments will suddenly make those things called. On your side of the house, then what incentive do the global north have to pay the global south after climate commitments have already been made?  
+[02:23] I'm saying that um  
+[02:26] So  
+[02:28] The global south does not need must wait for these climate change uh this cooperation to happen and then and then they need to cooperate to make these cooperations. If the bigger countries like the United States and the UK cannot provide this, then um the entire balance of this debate is off and we cannot vote for the proposition.  
+[02:53] They never explain that. Uh they never explained that. In fact, Proposition's strongest argument is that our side assumes a perfect throw. They say, wealthy countries have delayed climate payments for years. They ask, why would anything change without pressure? Judge, that sounds persuasive until we examine the type of pressure they are proposing. Because not all pressure is effective pressure. If I am negotiating with someone stronger than me, hurting myself isn't leverage. It is surrender. The proposition has mistaken vulnerability for bargaining power. The global south is not powerful because it suffers more of climate change. The global south is vulnerable because it suffers more of climate change. That distinction matters. Wealthy countries are richer, so they have larger economies. They have stronger infrastructure, they have greater adaptive capacity. But when climate cooperation collapses, who will suffer first? Not Washington, not London, not Russia's, the countries most exposed to floods. The countries most exposed to drought. The co countries most exposed to rising sea levels. The proposition tells you refusal creates pressure. We say refusal creates risk. Proposition never proves that risk successfully reparation. They merely Clash 2. Proposition has admitted climate commitments are not the problem. Judge, I want to focus on perhaps the most important concession we need in this debate. We ask Proposition a simple question. If historical emitters started paying reparations tomorrow, would you still support the global south making climate commitments? And the proposition answered, yes. I'll take that why.  
+[04:31] If you expect us to give you actual proof that people will actually make these like a climate commitment.  
+[04:38] then where is your proof that cooperation is realistic?  
+[04:44] I'm just saying, like my previous speaker said, cooperation will make the larger companies want to work with the global south and therefore in turn make the process of doing this easier.  
+[04:58] My second clash is that the proposition has admitted climate commitments are not the problem. And they answer yes. Judge, think about what that means. For three speeches, proposition has tried to convince you that climate commitments are unfair. They have told you developing countries are being asked to carry burdens they did not create. They have told you commitments to block inequality. And they have told you that the system is unjust. But when tested, they admitted something cool. The moment reparations arrive, they support climate commitments. That means climate commitments themselves are not the injustice, but the absence of reparations is. And if climate commitments are not the problem, then refusing them becomes much harder to justify. Because proposition is no longer saying climate commitments are wrong. They're saying they're valuable, but we should suspend them temporarily. So when Bangladesh invests in resilience infrastructure, Bangladesh benefits. When India develops a clear energy system, Indians benefit.  
+[05:57] My third clash. This debate is about justice. The proposition most emotional argument is this. They repeatedly ask, isn't air to demand equal responsibility from countries that contributed little to climate change? Judge, we agree responsibility will never be equal. But fearless and known fairness alone does not determine policy. Exception this matters too. The proposition has sped this entire debate proving that reparations are morally justified. Those are two completely different claims. The proposition wants to collapse this into one. We refuse to remain. Because climate commitments and climate justice are not mutually exclusive. Countries can continue climate justice while demanding compensation. Countries can continue adaptation while demanding accountability. Countries can protect their citizens while demanding reparations. The proposition's world says, no commitments until payment. Our world says, continue protecting your people while continuing to demand payment. So let me collapse this debate into the two questions that actually decide this round. Question one. What happens if proposition is wrong? This is the question they never answered. Suppose the global south refuses commitments. Suppose wealthy countries continue delaying. Suppose reparations still do not arrive. What happens then? I mean, climate change continues, the floods continue, the clouds continue, the rising sea levels continue, the negotiations continue. How vulnerable countries have now abandoned climate commitments. Judge, proposition asks you to gamble climate protection on a strategy that cannot guarantee will work. We do not. Question two. Who pays the price for proposition strategy? The proposition wants you to believe that historical emitters pay the price. But they never prove that. What we know for certain is who suffers immediately the country's most vulnerable to climate change.  
+[07:57] So, throughout this debate, one consistent truth has been running through all of them. The proposition has proven that reparations are justified. And we never disputed that. But what they have to prove is that refuting climate commitments secure those reparations. They show you unfairness, they show you consequences, they show you moral outage.  
+[08:16] But they show you a strategy built on hope. We show you a world built on certainty. Because at the end of this debate, climate change does not stop while negotiations continue. And we refuse to make that gamble. Climate justice and climate action are not enemies. The global south is both both. And for all these reasons, we proudly are both.  
+
+
+--- Opposition Reply Speech - 4 minutes ---
+[00:00] M more than it pressures historical emitters to pay. We must show that climate action and reparation can happen simultaneously. Not that one before the other. The climate won't wait for justice, and the global south needs both protection and justice now. The proposition was to prove that refusing climate climate com commitments is the global south's strongest leverage to force historical emitters to pay reparation. They rejected their half of the burden. They said they had to prove a world in that their world was most likely to give the global south the reparations, which they entirely failed to do. The reason behind this is their entire arguments was based off of one thing. It was built off of inequality. They say that the global south should not be forced to comply with the c c c c c c c c c climate commitments due to the fact that they did not have the same amount of relation to it as bigger countries did. However, the problem with that is the fact that even if they weren't to comply, even if they were to say I won't compliment.
+[00:57] clients who do pay me, that is not going to fix their problems. They will be suffering. They will be facing the climate change, the floods, the deaths, the poverty. Nothing will change while they wait.
+[01:07] They say their world is more likely because if the global south refuses to
+[01:13] to pay up.
+[01:15] The weight of the global
+[01:23] information that they will pay them. And because of this, all they are
+[01:26] All they are showing us is a world in which there's an if. An if that they cannot prove. They admit that they cannot.
+[01:39] to the people. However, the reason the opposition's side is stronger is due to the fact that on the opposition side,
+[01:48] South at the very least has the protection.
+[01:50] protection of the climate commitments.
+[01:55] because they have that protection.
+[01:58] continually arguing. They don't have enough money to pay that, but they could
+[02:11] issue simply due to the fact that different countries have different
+[02:16] Yeah.
+[02:29] that are large like the United States.
+[02:36] Those small vulnerable countries that they gave us themselves.
+[02:40] India. All of them who suffer first because they are weaker than the big countries. They said that themselves.
+[02:47] They are not thinking about
+[03:00] Stop and wait.
+[03:01] They continually ignore the part of our argument in which we all clearly stated the global south is not in the bargaining position to make these terms. They cannot decide these terms into the fact that the
+[03:13] They are weak.
+[03:15] Which means they can't be the ones setting the terms.
+[03:24] prior to joining.
+[03:28] by then not joining climate.
+[03:40] Global war.
+[03:42] reason the
+[03:51] operations appear. Which they don't. They leave it in it. Well we give we
+[03:55] Thank you.
+[03:58] protection and justice. We met our burden to show that there we we met our burden that there will be more bur there will be more pressure to pay and that there will be justice.
+
+
+--- Proposition Reply Speech - 4 minutes ---
+
+
+[00:02] I do believe it is my time to speak.  
+[00:06] Just  
+[00:07] To preface, my name is still Maggie. I am the second speaker or the reply speaker of the side opposition.  
+[00:17] She her pronouns, no POIs in this one, so I will start my time on my first word.  
+[00:26] Nothing will change, nothing will change, nothing will change. Where is your proof? That is the endless  
+[00:33] that we hear from our opponents this entire realm.  
+[00:37] So judges, I want to ask ourselves.  
+[00:39] in an impromptu debate where no research is allowed, and in a policy debate where the burden is not to prove the inevitable outcome of something, is this ever an okay response as to substitute a refutation towards an argument?  
+[00:56] Good day, judges. My name is Angela. My name is Meggie, and today I will be your reply speaker for the side opposition. So first I want to go through a couple of things. First, I want to first mention that they drop our entire argument on permanent hierarchy, and even if they say they don't, and they say that they respond with the fact that people will cooperate, we will ask them what they continuously demand of us. Where is the proof? We completely understand that it is impossible to provide proof, but they unfairly scrutinize us. So what is the double standard here? And why are we expected to meet it and why do our opponents just ignore the fact that they cannot give any substantial proof either. So do not buy their entire facade, their entire block of refutation of where they say that it's all about how communities cooperate. You cannot buy this reputation because under their side of the rule, the only things that are substantial in this round are ones that can actually be proven with actual research and proof, which like I said before is impossible to provide. Now, I won't spend any more time on this, so I'll be going into some rebuttal. Judges, the opposition admits that historical emitters like US and the UK have the upper hand. If this is true, then one side has more power, more wealth, and more influence. This is the entire point of my entire speech that they completely disregard. They admit that the US and the UK are historical admitters.  
+[02:19] continuously made other countries suffer. If they concede to this fact, then they concede to our entire side about how equality actually matters. They continuously ask us for proof. Well we can give them actual somewhat proof of the proof.  
+[02:31] logic that goes on inside of our heads.  
+[02:35] argue that it is possible for communities to be stuck in a never-ending cycle of being at the bottom of the pyramid. The reason is because if  
+[02:58] If all they talk about is the cooperation between the countries.  
+[03:23] countries already get what they want. The incentive to pay disappears. You can see on both sides, if you even look at this, a very like basic level sort of bartering like situation. One side has no incentive to pay the other side. One side at least has some incentive and that is the proof that I can give you today. You compare both sides and you compare the situations that they're in. If you were in that situation in that situation I think you would take the side that actually has an incentive. Now next I'll be going over the three clashes that my opponents have already identified. So the three clashes are the first one is refusal creates leverage. But they disagree. So they expect proof from us where's the proof from them? I've already prefaced this in the beginning of our speech. So we think that all they talk about is cooperation therefore they don't actually will in this clash because they still hang on to the threat. Second climate commitments are not the problem I think they disregard our entire speech the truth is it is not the climate commitments that are the problem but the monetary restraints lastly on justice. Judges justice is not about outcomes but it is also about responsibility. I think my opponents do this factor entirely. So because my  
+[04:29] Expect proof from us. I believe that this speech was enough to prove that our side should inevitably win this debate today. For those reasons that I have stated today, I'm so proud to stand on side proposition. Thank you.  
+
+
+================================================================================
+NOTES (OPTIONAL)
+================================================================================
+[Add any additional observations, context, or important moments you noticed 
+during the debate:]
+
+- Prop 2nd speaker Maggie had a fantastic delivery performance.
+- 
+- 
+
+================================================================================
+EVALUATION GUIDE
+================================================================================
+
+When evaluating, consider these aspects:
+
+CASE STRATEGY:
+- Did each team present a clear, coherent team line?
+- Was there a logical division of labor among speakers?
+- Did the case evolve and develop across speeches (without new args after 2nds)?
+- Were arguments prioritized effectively?
+
+ARGUMENT QUALITY:
+- Do arguments have assertion, reasoning, examples, AND link-back?
+- Are arguments supported by logic and general knowledge (not citations)?
+- Are arguments relevant to the motion and the key clashes?
+- Depth of analysis vs. mere assertion
+
+ENGAGEMENT AND CLASH:
+- Did teams respond directly to each other's strongest arguments?
+- Quality and specificity of rebuttal
+- Did teams identify and engage on the key issues?
+- Strategic use of POIs to expose weaknesses or set up arguments
+
+WEIGHING AND COMPARISON:
+- Did teams explain WHY their arguments matter more?
+- Were there clear comparative frameworks offered?
+- Did teams engage in meta-debate (why their framing is better)?
+- Quality of crystallization in 3rd speeches and reply
+
+DELIVERY AND PERSUASION:
+- Extemporaneous delivery (penalize manuscript reading)
+- Clarity, confidence, and fluency
+- Professional demeanor and respectful engagement
+- Time management across all speeches
+- Overall persuasive impact
+
+RULE COMPLIANCE:
+- No new arguments after 2nd speakers
+- Reply given by 1st or 2nd speaker (not 3rd)
+- No citing of published sources
+- POIs offered/accepted appropriately and within allowed time
+
+================================================================================
+OUTPUT REQUIRED
+================================================================================
+
+Please provide your evaluation in exactly this format:
+
+WINNING TEAM: [State Proposition or Opposition]
+
+TEAM SCORES:
+- Proposition: [Total team points] ([1st speaker] + [2nd speaker] + [3rd speaker] + [Reply])
+- Opposition: [Total team points] ([1st speaker] + [2nd speaker] + [3rd speaker] + [Reply])
+
+INDIVIDUAL SPEAKER SCORES (with category breakdown):
+
+1st Proposition ([Name]):
+- Content: [Score]/32
+- Style: [Score]/32
+- Strategy: [Score]/16
+- TOTAL: [Score]/80
+- Feedback (MAX 60 WORDS): [Specific feedback on content quality, delivery, 
+  structure, POI engagement, and areas for improvement]
+
+1st Opposition ([Name]):
+- Content: [Score]/32
+- Style: [Score]/32
+- Strategy: [Score]/16
+- TOTAL: [Score]/80
+- Feedback (MAX 60 WORDS): [Specific feedback on content quality, delivery, 
+  structure, POI engagement, and areas for improvement]
+
+2nd Proposition ([Name]):
+- Content: [Score]/32
+- Style: [Score]/32
+- Strategy: [Score]/16
+- TOTAL: [Score]/80
+- Feedback (MAX 60 WORDS): [Specific feedback on content quality, delivery, 
+  structure, rebuttal effectiveness, POI engagement, and areas for improvement]
+
+2nd Opposition ([Name]):
+- Content: [Score]/32
+- Style: [Score]/32
+- Strategy: [Score]/16
+- TOTAL: [Score]/80
+- Feedback (MAX 60 WORDS): [Specific feedback on content quality, delivery, 
+  structure, rebuttal effectiveness, POI engagement, and areas for improvement]
+
+3rd Proposition ([Name]):
+- Content: [Score]/32
+- Style: [Score]/32
+- Strategy: [Score]/16
+- TOTAL: [Score]/80
+- Feedback (MAX 60 WORDS): [Specific feedback on crystallization quality, 
+  weighing, delivery, and areas for improvement]
+
+3rd Opposition ([Name]):
+- Content: [Score]/32
+- Style: [Score]/32
+- Strategy: [Score]/16
+- TOTAL: [Score]/80
+- Feedback (MAX 60 WORDS): [Specific feedback on crystallization quality, 
+  weighing, delivery, and areas for improvement]
+
+Opposition Reply ([Name]):
+- Content: [Score]/16
+- Style: [Score]/16
+- Strategy: [Score]/8
+- TOTAL: [Score]/40
+- Feedback (MAX 60 WORDS): [Specific feedback on issue identification, 
+  persuasive framing, and areas for improvement]
+
+Proposition Reply ([Name]):
+- Content: [Score]/16
+- Style: [Score]/16
+- Strategy: [Score]/8
+- TOTAL: [Score]/40
+- Feedback (MAX 60 WORDS): [Specific feedback on issue identification, 
+  persuasive framing, and areas for improvement]
+
+REASONS FOR DECISION (MAX 120 WORDS):
+[Explain the critical reasons for your decision. Must address: (1) The key 
+clashes in the debate and how they were resolved, (2) Which team's weighing 
+and framing was more persuasive, (3) The decisive arguments or moments that 
+determined the round]
+
+FEEDBACK - PROPOSITION TEAM (MAX 100 WORDS):
+[Overall team strengths AND areas for improvement. Be specific about case 
+construction, logical reasoning, engagement, rebuttal quality, POI usage, 
+weighing, role fulfillment, and team coordination]
+
+FEEDBACK - OPPOSITION TEAM (MAX 100 WORDS):
+[Overall team strengths AND areas for improvement. Be specific about case 
+construction, logical reasoning, engagement, rebuttal quality, POI usage, 
+weighing, role fulfillment, and team coordination]
+
+BEST SPEAKER: [Name and why in 1 sentence]
+
+================================================================================
+IMPORTANT REMINDERS
+================================================================================
+
+- Stay objective — judge only the arguments made in this round
+- All three pillars matter: Matter, Manner, AND Method
+- LOGIC AND GENERAL KNOWLEDGE over citations — penalize source-citing, reward 
+  strong reasoning
+- No new arguments after 2nd speakers — disregard new args in 3rd/reply speeches
+- Teams must engage — "ships in the night" debates favor the more relevant team
+- POIs are expected elements — note teams that refuse or fail to offer them
+- Reply speeches should crystallize, not introduce new material
+- Reply must be given by 1st or 2nd speaker, never 3rd
+- Delivery must be extemporaneous — penalize manuscript reading
+- Weighing wins rounds — teams that compare and prioritize arguments are 
+  rewarded
+- Complete arguments need assertion, reasoning, examples, AND link-back
+- Focus feedback on helping debaters develop their World Schools skills
+- Be encouraging yet honest in your assessment
+- Remember this is high school (grades 9-12) — recognize growth while 
+  maintaining high standards
