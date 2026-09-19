@@ -32,11 +32,12 @@ from .llm_client import (
     ModelInvocationError,
 )
 
-# Default to GPT-4 Turbo for quality comparable to Claude
-DEFAULT_MODEL = "gpt-4-turbo-preview"
+# Default to GPT-5.6 Luna
+DEFAULT_MODEL = "gpt-5.6-luna"
 
-# OpenAI pricing per 1M tokens (as of 2024)
+# OpenAI pricing per 1M tokens
 PRICING_PER_MTOK = {
+    "gpt-5.6-luna": {"input": 0.20, "output": 1.20},
     "gpt-4-turbo": {"input": 10.00, "output": 30.00},
     "gpt-4": {"input": 30.00, "output": 60.00},
     "gpt-3.5-turbo": {"input": 0.50, "output": 1.50},
