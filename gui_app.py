@@ -1,689 +1,562 @@
-#!/usr/bin/env python3
+
 """
 JudgeAI Desktop Application
 
-Native PyQt6 GUI for multi-paradigm debate judging.
-Beautiful, modern interface - no terminal, no browser required.
+Replacement GUI that stays compatible with the current JudgeAI CLI/backend.
+It deliberately runs the canonical `judge.py new ...` pipeline instead of
+duplicating old backend calls inside the GUI.
 """
 
-import sys
 import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
-from typing import Optional
-from datetime import datetime
 
 try:
+    from PyQt6.QtCore import Qt, QThread, pyqtSignal
+    from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QFont
     from PyQt6.QtWidgets import (
-        QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-        QLabel, QPushButton, QListWidget, QListWidgetItem, QTextEdit,
-        QFileDialog, QMessageBox, QDialog, QLineEdit, QComboBox,
-        QProgressBar, QTabWidget, QSplitter, QGroupBox, QFormLayout,
-        QFrame,
+        QApplication,
+        QComboBox,
+        QDialog,
+        QFileDialog,
+        QFormLayout,
+        QGroupBox,
+        QHBoxLayout,
+        QLabel,
+        QLineEdit,
+        QListWidget,
+        QListWidgetItem,
+        QMainWindow,
+        QMessageBox,
+        QProgressBar,
+        QPushButton,
+        QTextEdit,
+        QVBoxLayout,
+        QWidget,
     )
-    from PyQt6.QtCore import Qt, QThread, pyqtSignal, QMimeData, QSize, QPropertyAnimation, QEasingCurve
-    from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QFont, QIcon, QPalette, QColor
 except ImportError:
     print("ERROR: PyQt6 not installed. Run: pip install PyQt6")
     sys.exit(1)
 
-# Add project to path
-project_root = Path(__file__).parent
-sys.path.insert(0, str(project_root))
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.bedrock_client import build_client, CredentialsError, ModelInvocationError
-from src.fallback_client import FallbackClient
-from src.judging import judge_round, generate_diff, DEFAULT_PARADIGMS
-from src.storage import LocalDiskBallotStore
-from src.ingest import load_round_input
-from src.config import load_config, set_api_key, set_provider_preference, load_into_environment, get_available_providers
+from src.bedrock_client import build_client, CredentialsError
+from src.config import (
+    get_available_providers,
+    load_config,
+    load_into_environment,
+    set_api_key,
+    set_provider_preference,
+)
+from src.storage import LocalDiskBallotStore, StorageError
 
-# Modern color scheme
+
 COLORS = {
-    'primary': '#3B82F6',      # Bright blue
-    'primary_hover': '#2563EB', # Darker blue
-    'success': '#10B981',      # Green
-    'warning': '#F59E0B',      # Orange
-    'error': '#EF4444',        # Red
-    'background': '#F9FAFB',   # Light gray
-    'surface': '#FFFFFF',      # White
-    'border': '#E5E7EB',       # Light border
-    'text': '#111827',         # Dark text
-    'text_secondary': '#6B7280', # Gray text
+    "primary": "#3B82F6",
+    "primary_hover": "#2563EB",
+    "success": "#10B981",
+    "warning": "#F59E0B",
+    "error": "#EF4444",
+    "background": "#F9FAFB",
+    "surface": "#FFFFFF",
+    "border": "#E5E7EB",
+    "text": "#111827",
+    "text_secondary": "#6B7280",
 }
 
 
 class SettingsDialog(QDialog):
-    """Beautiful settings dialog for API keys and provider configuration."""
-
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Settings")
-        self.setMinimumWidth(550)
-        self.setup_ui()
-        self.load_settings()
-        self.apply_styles()
+        self.setWindowTitle("JudgeAI Settings")
+        self.setMinimumWidth(520)
+        self._build_ui()
+        self._load()
 
-    def setup_ui(self):
-        layout = QVBoxLayout()
-        layout.setSpacing(20)
-        layout.setContentsMargins(30, 30, 30, 30)
+    def _build_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(28, 28, 28, 28)
+        layout.setSpacing(18)
 
-        # Title
         title = QLabel("⚙️ Settings")
-        title.setFont(QFont("SF Pro Display", 20, QFont.Weight.Bold))
+        title.setFont(QFont("Arial", 20, QFont.Weight.Bold))
         layout.addWidget(title)
 
-        # Provider selection
         provider_group = QGroupBox("LLM Provider")
-        provider_group.setFont(QFont("SF Pro Text", 12, QFont.Weight.Medium))
-        provider_layout = QFormLayout()
-        provider_layout.setSpacing(15)
-
+        provider_form = QFormLayout(provider_group)
         self.provider_combo = QComboBox()
-        self.provider_combo.addItems(["Auto-detect", "Anthropic API", "OpenAI API"])
-        self.provider_combo.setMinimumHeight(40)
-        provider_layout.addRow("Provider:", self.provider_combo)
-
-        provider_group.setLayout(provider_layout)
+        self.provider_combo.addItems(
+            ["Auto-detect", "Anthropic API", "OpenAI API"]
+        )
+        provider_form.addRow("Provider:", self.provider_combo)
         layout.addWidget(provider_group)
 
-        # API Keys
         keys_group = QGroupBox("API Keys")
-        keys_group.setFont(QFont("SF Pro Text", 12, QFont.Weight.Medium))
-        keys_layout = QFormLayout()
-        keys_layout.setSpacing(15)
+        keys_form = QFormLayout(keys_group)
 
         self.anthropic_key = QLineEdit()
-        self.anthropic_key.setPlaceholderText("sk-ant-...")
         self.anthropic_key.setEchoMode(QLineEdit.EchoMode.Password)
-        self.anthropic_key.setMinimumHeight(40)
-        keys_layout.addRow("Anthropic:", self.anthropic_key)
+        self.anthropic_key.setPlaceholderText("sk-ant-...")
+        keys_form.addRow("Anthropic:", self.anthropic_key)
 
         self.openai_key = QLineEdit()
-        self.openai_key.setPlaceholderText("sk-...")
         self.openai_key.setEchoMode(QLineEdit.EchoMode.Password)
-        self.openai_key.setMinimumHeight(40)
-        keys_layout.addRow("OpenAI:", self.openai_key)
+        self.openai_key.setPlaceholderText("sk-...")
+        keys_form.addRow("OpenAI:", self.openai_key)
 
-        keys_group.setLayout(keys_layout)
         layout.addWidget(keys_group)
 
-        # Help text
-        help_text = QLabel(
-            "📝 Get API keys:\n"
-            "• Anthropic: console.anthropic.com (Recommended - $3/$15 per 1M tokens)\n"
-            "• OpenAI: platform.openai.com/api-keys ($10/$30 per 1M tokens)\n\n"
-            "💡 Pro Tip: Set BOTH keys for automatic fallback!\n"
-            "   When one hits rate limits, automatically switches to the other.\n"
-            "   Zero downtime, seamless operation.\n\n"
-            "🔒 Keys are saved securely in ~/.judgeai/config.json"
+        note = QLabel(
+            "Keys are stored in ~/.judgeai/config.json and loaded when JudgeAI starts."
         )
-        help_text.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 10pt; padding: 10px;")
-        help_text.setWordWrap(True)
-        layout.addWidget(help_text)
+        note.setWordWrap(True)
+        note.setStyleSheet(f"color: {COLORS['text_secondary']};")
+        layout.addWidget(note)
 
-        layout.addStretch()
+        buttons = QHBoxLayout()
+        buttons.addStretch()
 
-        # Buttons
-        button_layout = QHBoxLayout()
-        button_layout.setSpacing(10)
+        cancel = QPushButton("Cancel")
+        cancel.clicked.connect(self.reject)
+        buttons.addWidget(cancel)
 
-        cancel_btn = QPushButton("Cancel")
-        cancel_btn.setMinimumHeight(44)
-        cancel_btn.clicked.connect(self.reject)
+        save = QPushButton("Save")
+        save.clicked.connect(self._save)
+        save.setObjectName("primary")
+        buttons.addWidget(save)
 
-        save_btn = QPushButton("Save")
-        save_btn.setMinimumHeight(44)
-        save_btn.clicked.connect(self.save_settings)
-        save_btn.setObjectName("primary")
+        layout.addLayout(buttons)
 
-        button_layout.addWidget(cancel_btn)
-        button_layout.addWidget(save_btn)
-        layout.addLayout(button_layout)
-
-        self.setLayout(layout)
-
-    def apply_styles(self):
-        """Apply modern styling to the dialog."""
         self.setStyleSheet(f"""
             QDialog {{
-                background-color: {COLORS['background']};
+                background: {COLORS['background']};
             }}
             QGroupBox {{
-                background-color: {COLORS['surface']};
+                background: {COLORS['surface']};
                 border: 1px solid {COLORS['border']};
-                border-radius: 12px;
-                padding: 20px;
-                margin-top: 10px;
+                border-radius: 10px;
+                margin-top: 8px;
+                padding: 14px;
                 font-weight: 600;
             }}
-            QGroupBox::title {{
-                subcontrol-origin: margin;
-                left: 15px;
-                padding: 0 5px;
-            }}
             QLineEdit, QComboBox {{
-                background-color: {COLORS['surface']};
-                border: 2px solid {COLORS['border']};
-                border-radius: 8px;
-                padding: 10px 15px;
-                font-size: 13pt;
-            }}
-            QLineEdit:focus, QComboBox:focus {{
-                border-color: {COLORS['primary']};
+                background: white;
+                border: 1px solid {COLORS['border']};
+                border-radius: 7px;
+                padding: 9px;
             }}
             QPushButton {{
-                background-color: {COLORS['surface']};
-                border: 2px solid {COLORS['border']};
-                border-radius: 8px;
-                padding: 12px 24px;
-                font-size: 13pt;
-                font-weight: 500;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS['background']};
+                padding: 9px 18px;
+                border-radius: 7px;
+                border: 1px solid {COLORS['border']};
+                background: white;
             }}
             QPushButton#primary {{
-                background-color: {COLORS['primary']};
-                border: none;
                 color: white;
-            }}
-            QPushButton#primary:hover {{
-                background-color: {COLORS['primary_hover']};
+                background: {COLORS['primary']};
+                border: none;
             }}
         """)
 
-    def load_settings(self):
-        """Load settings from saved config and environment variables."""
+    def _load(self):
         config = load_config()
 
-        # Load API keys (prefer environment, fallback to config)
-        anthropic_key = os.environ.get("ANTHROPIC_API_KEY") or config.get("anthropic_api_key", "")
-        openai_key = os.environ.get("OPENAI_API_KEY") or config.get("openai_api_key", "")
+        self.anthropic_key.setText(
+            os.environ.get("ANTHROPIC_API_KEY")
+            or config.get("anthropic_api_key", "")
+        )
+        self.openai_key.setText(
+            os.environ.get("OPENAI_API_KEY")
+            or config.get("openai_api_key", "")
+        )
 
-        self.anthropic_key.setText(anthropic_key)
-        self.openai_key.setText(openai_key)
+        pref = (
+            os.environ.get("LLM_PROVIDER")
+            or config.get("provider_preference", "auto")
+            or "auto"
+        ).lower()
 
-        # Load provider preference
-        provider = os.environ.get("LLM_PROVIDER") or config.get("provider_preference", "")
-        provider = provider.lower()
-
-        if provider == "anthropic":
+        if pref == "anthropic":
             self.provider_combo.setCurrentText("Anthropic API")
-        elif provider == "openai":
+        elif pref == "openai":
             self.provider_combo.setCurrentText("OpenAI API")
         else:
             self.provider_combo.setCurrentText("Auto-detect")
 
-    def save_settings(self):
-        """Save settings persistently to config file and environment."""
+    def _save(self):
         try:
-            # Save API keys
-            if self.anthropic_key.text():
-                set_api_key("anthropic", self.anthropic_key.text())
+            if self.anthropic_key.text().strip():
+                set_api_key("anthropic", self.anthropic_key.text().strip())
 
-            if self.openai_key.text():
-                set_api_key("openai", self.openai_key.text())
+            if self.openai_key.text().strip():
+                set_api_key("openai", self.openai_key.text().strip())
 
-            # Save provider preference
-            provider_text = self.provider_combo.currentText()
-            if provider_text == "Anthropic API":
+            selected = self.provider_combo.currentText()
+
+            if selected == "Anthropic API":
                 set_provider_preference("anthropic")
-            elif provider_text == "OpenAI API":
+            elif selected == "OpenAI API":
                 set_provider_preference("openai")
             else:
                 set_provider_preference("auto")
 
             self.accept()
-
-        except Exception as e:
+        except Exception as exc:
             QMessageBox.critical(
                 self,
-                "Error Saving Settings",
-                f"Failed to save settings:\n\n{str(e)}"
+                "Settings Error",
+                f"Could not save settings:\n\n{exc}",
             )
 
 
-class JudgingWorker(QThread):
-    """Background worker for judging (keeps UI responsive)."""
-
+class JudgeWorker(QThread):
     progress = pyqtSignal(str)
     finished = pyqtSignal(object)
 
-    def __init__(self, transcript_path: Path):
+    def __init__(self, transcript_path: Path, runs: int = 3):
         super().__init__()
         self.transcript_path = transcript_path
+        self.runs = runs
 
     def run(self):
-        """Run judging in background thread."""
+        temp_dir = None
         try:
-            self.progress.emit("Parsing transcript...")
+            self.progress.emit("Preparing transcript...")
 
-            round_input = load_round_input(
-                target=str(self.transcript_path),
-                debate_format="LD"
-            )
-            structured_transcript = round_input.structured_transcript
+            # Use the current CLI pipeline as the single source of truth.
+            # We stage a copy so JudgeAI's successful-run archiving does not
+            # move/delete the user's original transcript.
+            temp_dir = tempfile.mkdtemp(prefix="judgeai_gui_")
+            staged_path = Path(temp_dir) / self.transcript_path.name
+            shutil.copy2(self.transcript_path, staged_path)
 
-            self.progress.emit("Building LLM client...")
-            client = build_client(verbose=False)
+            self.progress.emit("Judging round...")
 
-            self.progress.emit(f"Judging with {type(client).__name__}...")
+            command = [
+                sys.executable,
+                str(PROJECT_ROOT / "judge.py"),
+                "new",
+                str(staged_path),
+                "--format",
+                "LD",
+                "--yes",
+                "--runs",
+                str(self.runs),
+            ]
 
-            result = judge_round(
-                client=client,
-                structured_transcript=structured_transcript,
-                paradigms=DEFAULT_PARADIGMS,
-                runs=3
-            )
-
-            self.progress.emit("Generating cross-paradigm diff...")
-
-            diff_response = generate_diff(
-                client=client,
-                round_id=datetime.now().strftime("%Y%m%d_%H%M%S"),
-                date=datetime.now().strftime("%Y-%m-%d"),
-                resolution=structured_transcript.resolution or "Unknown",
-                aff=structured_transcript.aff or "Affirmative",
-                neg=structured_transcript.neg or "Negative",
-                result=result
-            )
-
-            self.progress.emit("Saving results...")
-
-            store = LocalDiskBallotStore()
-            round_id = store.save_round(
-                result=result,
-                diff_text=diff_response.text,
-                structured_transcript=structured_transcript,
-                resolution=structured_transcript.resolution,
-                aff=structured_transcript.aff or "Affirmative",
-                neg=structured_transcript.neg or "Negative"
+            completed = subprocess.run(
+                command,
+                cwd=str(PROJECT_ROOT),
+                env=os.environ.copy(),
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
             )
 
-            self.finished.emit({
-                "success": True,
-                "round_id": round_id,
-                "diff": diff_response.text,
-                "result": result
-            })
+            stdout = completed.stdout or ""
+            stderr = completed.stderr or ""
+            combined = stdout + "\n" + stderr
 
-        except Exception as e:
-            self.finished.emit({
-                "success": False,
-                "error": str(e)
-            })
+            if completed.returncode != 0:
+                raise RuntimeError(
+                    combined.strip()
+                    or f"JudgeAI exited with code {completed.returncode}"
+                )
+
+            match = re.search(r"Round ID:\s*([^\s]+)", combined)
+            round_id = match.group(1) if match else None
+
+            diff_text = ""
+            if round_id:
+                try:
+                    diff_text = LocalDiskBallotStore().load_diff(round_id)
+                except Exception:
+                    diff_text = stdout.strip()
+
+            self.finished.emit(
+                {
+                    "success": True,
+                    "round_id": round_id,
+                    "diff": diff_text or stdout.strip(),
+                    "log": combined.strip(),
+                }
+            )
+
+        except Exception as exc:
+            self.finished.emit(
+                {
+                    "success": False,
+                    "error": str(exc),
+                }
+            )
+        finally:
+            if temp_dir:
+                shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 class DropArea(QLabel):
-    """Beautiful drag-and-drop area for transcript files."""
-
     file_dropped = pyqtSignal(Path)
 
     def __init__(self):
         super().__init__()
         self.setAcceptDrops(True)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setText("📄\n\nDrop transcript here\n\nor click to browse")
-        self.setMinimumHeight(280)
-        self.apply_styles()
+        self.setMinimumHeight(260)
+        self.setText(
+            "📄\n\nDrop a debate transcript here\n\nor click to browse\n\n"
+            ".txt and .rtf supported"
+        )
+        self._normal_style()
 
-    def apply_styles(self):
-        """Apply modern styling."""
+    def _normal_style(self):
         self.setStyleSheet(f"""
             QLabel {{
                 border: 3px dashed {COLORS['border']};
                 border-radius: 16px;
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 {COLORS['surface']}, stop:1 #F3F4F6);
-                padding: 60px;
+                background: {COLORS['surface']};
+                padding: 50px;
                 font-size: 16pt;
-                font-weight: 500;
                 color: {COLORS['text_secondary']};
+            }}
+        """)
+
+    def _hover_style(self):
+        self.setStyleSheet(f"""
+            QLabel {{
+                border: 3px dashed {COLORS['primary']};
+                border-radius: 16px;
+                background: #EFF6FF;
+                padding: 50px;
+                font-size: 16pt;
+                color: {COLORS['primary']};
             }}
         """)
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
-            self.setStyleSheet(f"""
-                QLabel {{
-                    border: 3px dashed {COLORS['primary']};
-                    border-radius: 16px;
-                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                        stop:0 #EFF6FF, stop:1 #DBEAFE);
-                    padding: 60px;
-                    font-size: 16pt;
-                    font-weight: 500;
-                    color: {COLORS['primary']};
-                }}
-            """)
+            self._hover_style()
 
     def dragLeaveEvent(self, event):
-        self.apply_styles()
+        self._normal_style()
 
     def dropEvent(self, event: QDropEvent):
-        files = [url.toLocalFile() for url in event.mimeData().urls()]
-        if files:
-            self.file_dropped.emit(Path(files[0]))
-        self.apply_styles()
+        urls = event.mimeData().urls()
+        self._normal_style()
+
+        if not urls:
+            return
+
+        path = Path(urls[0].toLocalFile())
+        self.file_dropped.emit(path)
 
     def mousePressEvent(self, event):
-        file_path, _ = QFileDialog.getOpenFileName(
+        path, _ = QFileDialog.getOpenFileName(
             self,
-            "Select Transcript File",
+            "Choose Transcript",
             str(Path.home()),
-            "Text Files (*.txt *.md);;All Files (*.*)"
+            "Transcript Files (*.txt *.rtf);;All Files (*.*)",
         )
-        if file_path:
-            self.file_dropped.emit(Path(file_path))
-
-    def enterEvent(self, event):
-        """Hover effect."""
-        self.setStyleSheet(f"""
-            QLabel {{
-                border: 3px dashed {COLORS['primary']};
-                border-radius: 16px;
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 {COLORS['surface']}, stop:1 #F3F4F6);
-                padding: 60px;
-                font-size: 16pt;
-                font-weight: 500;
-                color: {COLORS['primary']};
-            }}
-        """)
-
-    def leaveEvent(self, event):
-        """Remove hover effect."""
-        self.apply_styles()
+        if path:
+            self.file_dropped.emit(Path(path))
 
 
 class MainWindow(QMainWindow):
-    """Beautiful main application window."""
-
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("JudgeAI")
-        self.setMinimumSize(1000, 800)
-        self.store = LocalDiskBallotStore()
-        self.current_worker = None
 
-        # Load saved API keys from config
         load_into_environment()
 
-        self.setup_ui()
-        self.apply_styles()
-        self.load_recent_rounds()
-        self.check_llm_setup()
+        self.store = LocalDiskBallotStore()
+        self.worker = None
+        self.all_rounds = []
 
-    def setup_ui(self):
-        """Build the beautiful UI."""
+        self.setWindowTitle("JudgeAI")
+        self.setMinimumSize(980, 760)
+
+        self._build_ui()
+        self._apply_style()
+        self.refresh_rounds()
+        self.refresh_provider_status()
+
+    def _build_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
-        layout = QVBoxLayout(central)
-        layout.setSpacing(20)
-        layout.setContentsMargins(40, 40, 40, 40)
 
-        # Header
+        layout = QVBoxLayout(central)
+        layout.setContentsMargins(36, 32, 36, 32)
+        layout.setSpacing(18)
+
         header = QHBoxLayout()
 
-        title_section = QVBoxLayout()
-        title_section.setSpacing(5)
-
-        title = QLabel("⚖️  JudgeAI")
-        title.setFont(QFont("SF Pro Display", 32, QFont.Weight.Bold))
-        title_section.addWidget(title)
+        heading_box = QVBoxLayout()
+        title = QLabel("⚖️ JudgeAI")
+        title.setFont(QFont("Arial", 30, QFont.Weight.Bold))
+        heading_box.addWidget(title)
 
         subtitle = QLabel("Multi-paradigm Lincoln-Douglas debate judge")
-        subtitle.setFont(QFont("SF Pro Text", 13))
         subtitle.setStyleSheet(f"color: {COLORS['text_secondary']};")
-        title_section.addWidget(subtitle)
+        heading_box.addWidget(subtitle)
 
-        header.addLayout(title_section)
+        header.addLayout(heading_box)
         header.addStretch()
 
-        # Status badge
-        self.status_label = QLabel("● Not configured")
-        self.status_label.setFont(QFont("SF Pro Text", 12))
-        self.status_label.setStyleSheet(f"""
-            background-color: {COLORS['surface']};
-            border: 2px solid {COLORS['border']};
-            border-radius: 8px;
-            padding: 8px 16px;
-            color: {COLORS['text_secondary']};
-        """)
-        header.addWidget(self.status_label, alignment=Qt.AlignmentFlag.AlignTop)
+        self.provider_status = QLabel("● Checking...")
+        self.provider_status.setStyleSheet(
+            f"padding: 8px 12px; color: {COLORS['text_secondary']};"
+        )
+        header.addWidget(self.provider_status)
+
+        settings = QPushButton("⚙️ Settings")
+        settings.clicked.connect(self.open_settings)
+        header.addWidget(settings)
 
         layout.addLayout(header)
-        layout.addSpacing(10)
 
-        # Drop area
         self.drop_area = DropArea()
-        self.drop_area.file_dropped.connect(self.handle_file)
+        self.drop_area.file_dropped.connect(self.start_judging)
         layout.addWidget(self.drop_area)
 
-        # Progress bar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        self.progress_bar.setTextVisible(True)
-        self.progress_bar.setMinimumHeight(48)
-        self.progress_bar.setFont(QFont("SF Pro Text", 12))
-        layout.addWidget(self.progress_bar)
+        self.progress = QProgressBar()
+        self.progress.setVisible(False)
+        self.progress.setRange(0, 0)
+        self.progress.setMinimumHeight(40)
+        layout.addWidget(self.progress)
 
-        # Recent rounds section
         rounds_header = QHBoxLayout()
 
-        rounds_label = QLabel("Recent Rounds")
-        rounds_label.setFont(QFont("SF Pro Display", 18, QFont.Weight.Bold))
-        rounds_header.addWidget(rounds_label)
+        rounds_title = QLabel("Recent Rounds")
+        rounds_title.setFont(QFont("Arial", 18, QFont.Weight.Bold))
+        rounds_header.addWidget(rounds_title)
 
         rounds_header.addStretch()
 
-        refresh_btn = QPushButton("🔄  Refresh")
-        refresh_btn.setMinimumHeight(36)
-        refresh_btn.clicked.connect(self.load_recent_rounds)
-        rounds_header.addWidget(refresh_btn)
+        refresh = QPushButton("Refresh")
+        refresh.clicked.connect(self.refresh_rounds)
+        rounds_header.addWidget(refresh)
 
         layout.addLayout(rounds_header)
 
-        # Search bar
-        search_container = QHBoxLayout()
-        search_container.setSpacing(10)
+        self.search = QLineEdit()
+        self.search.setPlaceholderText(
+            "Search by round ID, date, resolution, AFF, or NEG..."
+        )
+        self.search.textChanged.connect(self.filter_rounds)
+        layout.addWidget(self.search)
 
-        self.search_box = QLineEdit()
-        self.search_box.setPlaceholderText("🔍 Search by date, resolution, debater names, or round ID...")
-        self.search_box.setMinimumHeight(44)
-        self.search_box.setFont(QFont("SF Pro Text", 13))
-        self.search_box.textChanged.connect(self.filter_rounds)
-        search_container.addWidget(self.search_box)
-
-        clear_search_btn = QPushButton("✕")
-        clear_search_btn.setFixedSize(44, 44)
-        clear_search_btn.setToolTip("Clear search")
-        clear_search_btn.clicked.connect(self.clear_search)
-        search_container.addWidget(clear_search_btn)
-
-        layout.addLayout(search_container)
-
-        # Results count label
-        self.results_label = QLabel("")
-        self.results_label.setFont(QFont("SF Pro Text", 11))
-        self.results_label.setStyleSheet(f"color: {COLORS['text_secondary']}; padding: 5px 10px;")
-        layout.addWidget(self.results_label)
-
-        # Rounds list
         self.rounds_list = QListWidget()
-        self.rounds_list.itemDoubleClicked.connect(self.view_round)
-        self.rounds_list.setFont(QFont("SF Pro Text", 13))
-        self.rounds_list.setSpacing(8)
+        self.rounds_list.itemDoubleClicked.connect(self.open_round)
         layout.addWidget(self.rounds_list)
 
-        # Store all rounds for filtering
-        self.all_rounds = []
+        hint = QLabel(
+            "Double-click a completed round to view its cross-paradigm result."
+        )
+        hint.setStyleSheet(f"color: {COLORS['text_secondary']};")
+        layout.addWidget(hint)
 
-        # Bottom toolbar
-        toolbar = QHBoxLayout()
-        toolbar.setSpacing(12)
-
-        settings_btn = QPushButton("⚙️  Settings")
-        settings_btn.setMinimumHeight(44)
-        settings_btn.clicked.connect(self.show_settings)
-        settings_btn.setObjectName("primary")
-        toolbar.addWidget(settings_btn)
-
-        toolbar.addStretch()
-
-        layout.addLayout(toolbar)
-
-    def apply_styles(self):
-        """Apply modern styling to the main window."""
+    def _apply_style(self):
         self.setStyleSheet(f"""
             QMainWindow {{
-                background-color: {COLORS['background']};
+                background: {COLORS['background']};
             }}
             QWidget {{
-                font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
+                font-family: Arial, sans-serif;
+                color: {COLORS['text']};
             }}
             QPushButton {{
-                background-color: {COLORS['surface']};
-                border: 2px solid {COLORS['border']};
-                border-radius: 10px;
-                padding: 10px 20px;
-                font-size: 13pt;
-                font-weight: 500;
-                color: {COLORS['text']};
-            }}
-            QPushButton:hover {{
-                background-color: #F3F4F6;
-                border-color: {COLORS['primary']};
-            }}
-            QPushButton#primary {{
-                background-color: {COLORS['primary']};
-                border: none;
-                color: white;
-            }}
-            QPushButton#primary:hover {{
-                background-color: {COLORS['primary_hover']};
-            }}
-            QLineEdit {{
-                background-color: {COLORS['surface']};
-                border: 2px solid {COLORS['border']};
-                border-radius: 10px;
-                padding: 12px 16px;
-                font-size: 13pt;
-            }}
-            QLineEdit:focus {{
-                border-color: {COLORS['primary']};
-            }}
-            QListWidget {{
-                background-color: {COLORS['surface']};
-                border: 2px solid {COLORS['border']};
-                border-radius: 12px;
-                padding: 10px;
-                font-size: 13pt;
-            }}
-            QListWidget::item {{
-                background-color: {COLORS['surface']};
+                background: white;
                 border: 1px solid {COLORS['border']};
                 border-radius: 8px;
-                padding: 16px;
-                margin: 4px;
+                padding: 9px 14px;
             }}
-            QListWidget::item:hover {{
-                background-color: #F9FAFB;
+            QPushButton:hover {{
                 border-color: {COLORS['primary']};
             }}
-            QListWidget::item:selected {{
-                background-color: #EFF6FF;
-                border-color: {COLORS['primary']};
-                color: {COLORS['text']};
+            QLineEdit {{
+                background: white;
+                border: 1px solid {COLORS['border']};
+                border-radius: 8px;
+                padding: 10px;
+            }}
+            QListWidget {{
+                background: white;
+                border: 1px solid {COLORS['border']};
+                border-radius: 10px;
+                padding: 6px;
+            }}
+            QListWidget::item {{
+                padding: 12px;
+                margin: 3px;
+                border-bottom: 1px solid {COLORS['border']};
             }}
             QProgressBar {{
-                border: 2px solid {COLORS['border']};
-                border-radius: 10px;
-                background-color: {COLORS['surface']};
+                background: white;
+                border: 1px solid {COLORS['border']};
+                border-radius: 8px;
                 text-align: center;
-                font-weight: 500;
             }}
             QProgressBar::chunk {{
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 {COLORS['primary']}, stop:1 #60A5FA);
-                border-radius: 8px;
+                background: {COLORS['primary']};
+                border-radius: 7px;
             }}
         """)
 
-    def check_llm_setup(self):
-        """Check if LLM provider is configured."""
+    def refresh_provider_status(self):
         try:
             client = build_client(verbose=False)
-            client_name = type(client).__name__
-
-            # Check if using fallback client (multiple providers)
-            if isinstance(client, FallbackClient):
-                providers_text = " → ".join(client.provider_names)
-                self.status_label.setText(f"● Auto-Fallback: {client.current_provider_name}")
-                self.status_label.setToolTip(
-                    f"Auto-switching enabled\n"
-                    f"Fallback chain: {providers_text}\n"
-                    f"Switches automatically on rate limits"
-                )
-                self.status_label.setStyleSheet(f"""
-                    background-color: #EFF6FF;
-                    border: 2px solid {COLORS['primary']};
-                    border-radius: 8px;
-                    padding: 8px 16px;
-                    color: {COLORS['primary']};
-                    font-weight: 600;
-                """)
-            elif "Anthropic" in client_name:
-                self.status_label.setText("● Anthropic API")
-                self.status_label.setToolTip("Using Anthropic API")
-                self.status_label.setStyleSheet(f"""
-                    background-color: #ECFDF5;
-                    border: 2px solid {COLORS['success']};
-                    border-radius: 8px;
-                    padding: 8px 16px;
-                    color: {COLORS['success']};
-                    font-weight: 600;
-                """)
-            elif "OpenAI" in client_name:
-                self.status_label.setText("● OpenAI API")
-                self.status_label.setToolTip("Using OpenAI API")
-                self.status_label.setStyleSheet(f"""
-                    background-color: #ECFDF5;
-                    border: 2px solid {COLORS['success']};
-                    border-radius: 8px;
-                    padding: 8px 16px;
-                    color: {COLORS['success']};
-                    font-weight: 600;
-                """)
+            self.provider_status.setText(f"● {type(client).__name__}")
+            self.provider_status.setStyleSheet(
+                f"padding: 8px 12px; color: {COLORS['success']}; font-weight: 600;"
+            )
         except Exception:
-            self.status_label.setText("● Not configured")
-            self.status_label.setToolTip("No LLM provider configured")
-            self.status_label.setStyleSheet(f"""
-                background-color: #FEF3C7;
-                border: 2px solid {COLORS['warning']};
-                border-radius: 8px;
-                padding: 8px 16px;
-                color: {COLORS['warning']};
-                font-weight: 600;
-            """)
+            providers = get_available_providers()
+            if providers:
+                self.provider_status.setText("● API key saved")
+                self.provider_status.setStyleSheet(
+                    f"padding: 8px 12px; color: {COLORS['warning']}; font-weight: 600;"
+                )
+            else:
+                self.provider_status.setText("● Not configured")
+                self.provider_status.setStyleSheet(
+                    f"padding: 8px 12px; color: {COLORS['warning']}; font-weight: 600;"
+                )
 
-    def show_settings(self):
-        """Open settings dialog."""
+    def open_settings(self):
         dialog = SettingsDialog(self)
         if dialog.exec():
-            self.check_llm_setup()
-            msg = QMessageBox(self)
-            msg.setWindowTitle("Success")
-            msg.setText("✓ Settings saved successfully")
-            msg.setIcon(QMessageBox.Icon.Information)
-            msg.exec()
+            load_into_environment()
+            self.refresh_provider_status()
+            QMessageBox.information(self, "JudgeAI", "Settings saved.")
 
-    def handle_file(self, file_path: Path):
-        """Handle dropped/selected file."""
-        if not file_path.exists():
-            QMessageBox.critical(self, "Error", f"File not found: {file_path}")
+    def start_judging(self, path: Path):
+        if self.worker and self.worker.isRunning():
+            QMessageBox.warning(
+                self,
+                "JudgeAI",
+                "A round is already being judged.",
+            )
+            return
+
+        if not path.exists() or not path.is_file():
+            QMessageBox.critical(
+                self,
+                "Invalid File",
+                f"File not found:\n{path}",
+            )
+            return
+
+        if path.suffix.lower() not in {".txt", ".rtf"}:
+            QMessageBox.warning(
+                self,
+                "Unsupported File",
+                "Please choose a .txt or .rtf transcript.",
+            )
             return
 
         try:
@@ -691,242 +564,156 @@ class MainWindow(QMainWindow):
         except CredentialsError:
             QMessageBox.warning(
                 self,
-                "LLM Not Configured",
-                "Please configure your LLM provider in Settings first.\n\n"
-                "You need either:\n"
-                "• Anthropic API key (recommended)\n"
-                "• OpenAI API key"
+                "API Key Needed",
+                "Open Settings and add an Anthropic or OpenAI API key first.",
             )
-            self.show_settings()
+            self.open_settings()
+            return
+        except Exception as exc:
+            QMessageBox.critical(
+                self,
+                "LLM Setup Error",
+                f"JudgeAI could not initialize the model provider:\n\n{exc}",
+            )
+            return
+
+        answer = QMessageBox.question(
+            self,
+            "Judge Round",
+            "Judge this transcript now?\n\n"
+            "This will make paid API calls. The default is 3 runs per paradigm.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+
+        if answer != QMessageBox.StandardButton.Yes:
             return
 
         self.drop_area.setVisible(False)
-        self.progress_bar.setVisible(True)
-        self.progress_bar.setRange(0, 0)
-        self.progress_bar.setFormat("Judging...")
+        self.progress.setVisible(True)
+        self.progress.setFormat("Starting JudgeAI...")
 
-        self.current_worker = JudgingWorker(file_path)
-        self.current_worker.progress.connect(self.update_progress)
-        self.current_worker.finished.connect(self.judging_finished)
-        self.current_worker.start()
-
-    def update_progress(self, message: str):
-        """Update progress bar text."""
-        self.progress_bar.setFormat(message)
+        self.worker = JudgeWorker(path, runs=3)
+        self.worker.progress.connect(self.progress.setFormat)
+        self.worker.finished.connect(self.judging_finished)
+        self.worker.start()
 
     def judging_finished(self, result: dict):
-        """Handle judging completion."""
+        self.progress.setVisible(False)
         self.drop_area.setVisible(True)
-        self.progress_bar.setVisible(False)
 
-        if result["success"]:
-            self.load_recent_rounds()
+        if not result.get("success"):
+            QMessageBox.critical(
+                self,
+                "Judging Failed",
+                result.get("error", "Unknown error"),
+            )
+            return
 
-            msg = QMessageBox(self)
-            msg.setWindowTitle("Success")
-            msg.setText("✓ Round judged successfully!")
-            msg.setInformativeText(f"Round ID: {result['round_id'][:12]}...")
-            msg.setDetailedText(result["diff"])
-            msg.setIcon(QMessageBox.Icon.Information)
-            msg.exec()
-        else:
-            error_text = result['error']
+        self.refresh_rounds()
 
-            # Check if it's a "all providers failed" error
-            if "all llm providers failed" in error_text.lower():
-                # Show more helpful error message
-                providers = get_available_providers()
-                if len(providers) >= 2:
-                    error_msg = (
-                        f"❌ All LLM providers hit rate limits or errors:\n\n{error_text}\n\n"
-                        f"💡 What to do:\n"
-                        f"• Wait 1-5 minutes for rate limits to reset\n"
-                        f"• Try again - limits usually reset quickly\n"
-                        f"• Or upgrade to higher tier API plan for more capacity"
-                    )
-                else:
-                    error_msg = (
-                        f"❌ LLM provider failed:\n\n{error_text}\n\n"
-                        f"💡 Tip: Set BOTH Anthropic and OpenAI API keys in Settings\n"
-                        f"   for automatic fallback when one hits rate limits!"
-                    )
-                QMessageBox.critical(self, "Rate Limit / Error", error_msg)
-            else:
-                QMessageBox.critical(self, "Error", f"Judging failed:\n\n{error_text}")
+        round_id = result.get("round_id") or "Unknown"
+        diff = result.get("diff") or "Round completed, but no diff was found."
 
-    def load_recent_rounds(self):
-        """Load recent rounds into list and store for filtering."""
-        self.all_rounds = self.store.list_rounds()
-        self.filter_rounds("")  # Show all initially
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"JudgeAI Result — {round_id}")
+        dialog.resize(850, 650)
 
-    def clear_search(self):
-        """Clear the search box."""
-        self.search_box.clear()
+        layout = QVBoxLayout(dialog)
 
-    def filter_rounds(self, search_text: str):
-        """Filter rounds based on search text."""
+        title = QLabel(f"✓ Round complete\n{round_id}")
+        title.setFont(QFont("Arial", 15, QFont.Weight.Bold))
+        layout.addWidget(title)
+
+        output = QTextEdit()
+        output.setReadOnly(True)
+        output.setPlainText(diff)
+        layout.addWidget(output)
+
+        close = QPushButton("Close")
+        close.clicked.connect(dialog.accept)
+        layout.addWidget(close)
+
+        dialog.exec()
+
+    def refresh_rounds(self):
+        try:
+            self.all_rounds = self.store.list_rounds()
+        except Exception:
+            self.all_rounds = []
+
+        self.filter_rounds(self.search.text() if hasattr(self, "search") else "")
+
+    def filter_rounds(self, query: str):
+        if not hasattr(self, "rounds_list"):
+            return
+
         self.rounds_list.clear()
-        search_text = search_text.lower().strip()
+        needle = (query or "").strip().lower()
 
-        if not self.all_rounds:
-            item = QListWidgetItem("No rounds yet • Drop a transcript to begin")
-            item.setFlags(Qt.ItemFlag.NoItemFlags)
-            item.setForeground(QColor(COLORS['text_secondary']))
-            self.rounds_list.addItem(item)
-            self.results_label.setText("")
-            return
+        for item in self.all_rounds:
+            haystack = " ".join(
+                str(item.get(key) or "")
+                for key in ("round_id", "date", "resolution", "aff", "neg", "format")
+            ).lower()
 
-        # Filter rounds
-        filtered_rounds = []
-        for round_data in self.all_rounds:
-            if self._matches_search(round_data, search_text):
-                filtered_rounds.append(round_data)
+            if needle and needle not in haystack:
+                continue
 
-        # Display filtered results
-        if not filtered_rounds:
-            item = QListWidgetItem("No matches found")
-            item.setFlags(Qt.ItemFlag.NoItemFlags)
-            item.setForeground(QColor(COLORS['text_secondary']))
-            self.rounds_list.addItem(item)
-            self.results_label.setText(f"0 of {len(self.all_rounds)} rounds")
-            return
+            round_id = item.get("round_id") or "Unknown"
+            date = item.get("date") or "Unknown date"
+            resolution = item.get("resolution") or "Resolution not detected"
+            aff = item.get("aff") or "AFF"
+            neg = item.get("neg") or "NEG"
+            cost = float(item.get("cost_usd") or 0)
 
-        # Show up to 50 results
-        for round_data in filtered_rounds[:50]:
-            date = round_data.get("date", "Unknown")
-            resolution = round_data.get("resolution") or "Unknown"
-            aff = round_data.get("aff", "")
-            neg = round_data.get("neg", "")
-
-            # Build display text
-            resolution_short = resolution[:50] + "..." if len(resolution) > 50 else resolution
-            display_text = f"{date}  •  {resolution_short}"
-
-            # Add debater names if available
-            if aff or neg:
-                names = []
-                if aff:
-                    names.append(f"Aff: {aff}")
-                if neg:
-                    names.append(f"Neg: {neg}")
-                display_text += f"\n    {' | '.join(names)}"
-
-            item = QListWidgetItem(display_text)
-            item.setData(Qt.ItemDataRole.UserRole, round_data["round_id"])
-            self.rounds_list.addItem(item)
-
-        # Update results count
-        if search_text:
-            self.results_label.setText(
-                f"Found {len(filtered_rounds)} of {len(self.all_rounds)} rounds"
-            )
-        else:
-            self.results_label.setText(
-                f"Showing {min(len(filtered_rounds), 50)} of {len(self.all_rounds)} rounds"
+            text = (
+                f"{date}  •  {round_id}\n"
+                f"{resolution}\n"
+                f"{aff} vs {neg}  •  ${cost:.4f}"
             )
 
-    def _matches_search(self, round_data: dict, search_text: str) -> bool:
-        """Check if round matches search criteria."""
-        if not search_text:
-            return True
+            widget_item = QListWidgetItem(text)
+            widget_item.setData(Qt.ItemDataRole.UserRole, round_id)
+            self.rounds_list.addItem(widget_item)
 
-        # Searchable fields
-        searchable = [
-            round_data.get("date") or "",
-            round_data.get("resolution") or "",
-            round_data.get("aff") or "",
-            round_data.get("neg") or "",
-            round_data.get("round_id") or "",
-        ]
-
-        # Convert all to lowercase (handle None values)
-        searchable = [str(field).lower() if field else "" for field in searchable]
-
-        # Check if search text appears in any field
-        # Support wildcard with * (e.g., "nuclear*weapons")
-        if "*" in search_text:
-            # Simple wildcard matching
-            parts = search_text.split("*")
-            for field in searchable:
-                matches = True
-                pos = 0
-                for part in parts:
-                    if part:  # Skip empty parts
-                        idx = field.find(part, pos)
-                        if idx == -1:
-                            matches = False
-                            break
-                        pos = idx + len(part)
-                if matches:
-                    return True
-        else:
-            # Simple contains search
-            for field in searchable:
-                if search_text in field:
-                    return True
-
-        return False
-
-    def view_round(self, item: QListWidgetItem):
-        """View a past round."""
+    def open_round(self, item: QListWidgetItem):
         round_id = item.data(Qt.ItemDataRole.UserRole)
         if not round_id:
             return
 
         try:
-            round_path = self.store.round_path(round_id)
-            diff_file = round_path / "diff.md"
+            content = self.store.load_diff(round_id)
+        except StorageError:
+            try:
+                meta = self.store.load_metadata(round_id)
+                content = (
+                    "No cross-paradigm diff is saved for this round.\n\n"
+                    f"Metadata:\n{meta}"
+                )
+            except Exception as exc:
+                content = f"Could not load round:\n\n{exc}"
 
-            if not diff_file.exists():
-                QMessageBox.warning(self, "Not Found", "Round diff not found.")
-                return
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Round — {round_id}")
+        dialog.resize(850, 650)
 
-            diff_text = diff_file.read_text(encoding="utf-8")
+        layout = QVBoxLayout(dialog)
 
-            dialog = QDialog(self)
-            dialog.setWindowTitle(f"Round {round_id[:12]}...")
-            dialog.setMinimumSize(900, 700)
+        text = QTextEdit()
+        text.setReadOnly(True)
+        text.setPlainText(content)
+        layout.addWidget(text)
 
-            layout = QVBoxLayout(dialog)
-            layout.setContentsMargins(30, 30, 30, 30)
+        close = QPushButton("Close")
+        close.clicked.connect(dialog.accept)
+        layout.addWidget(close)
 
-            text_view = QTextEdit()
-            text_view.setReadOnly(True)
-            text_view.setText(diff_text)
-            text_view.setFont(QFont("SF Mono", 12))
-            text_view.setStyleSheet(f"""
-                QTextEdit {{
-                    background-color: {COLORS['surface']};
-                    border: 2px solid {COLORS['border']};
-                    border-radius: 12px;
-                    padding: 20px;
-                }}
-            """)
-            layout.addWidget(text_view)
-
-            close_btn = QPushButton("Close")
-            close_btn.setMinimumHeight(44)
-            close_btn.setObjectName("primary")
-            close_btn.clicked.connect(dialog.close)
-            layout.addWidget(close_btn)
-
-            dialog.exec()
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load round: {e}")
+        dialog.exec()
 
 
 def main():
-    """Launch the beautiful GUI application."""
     app = QApplication(sys.argv)
     app.setApplicationName("JudgeAI")
-
-    # Set app-wide font (use system default on non-Mac)
-    font = QFont()
-    font.setPointSize(11)
-    if sys.platform == "darwin":  # macOS
-        font.setFamily("SF Pro Text")
-    app.setFont(font)
 
     window = MainWindow()
     window.show()
