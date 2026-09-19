@@ -32,12 +32,11 @@ from .llm_client import (
     ModelInvocationError,
 )
 
-# Default to GPT-5.6 Luna
-DEFAULT_MODEL = "gpt-5.6-luna"
+# Default to GPT-4 Turbo for quality comparable to Claude
+DEFAULT_MODEL = "gpt-4-turbo-preview"
 
-# OpenAI pricing per 1M tokens
+# OpenAI pricing per 1M tokens (as of 2024)
 PRICING_PER_MTOK = {
-    "gpt-5.6-luna": {"input": 0.20, "output": 1.20},
     "gpt-4-turbo": {"input": 10.00, "output": 30.00},
     "gpt-4": {"input": 30.00, "output": 60.00},
     "gpt-3.5-turbo": {"input": 0.50, "output": 1.50},
@@ -111,7 +110,6 @@ class OpenAIModelResponse(ModelResponse):
 def resolve_model_id(explicit: Optional[str] = None) -> str:
     """
     Decide which OpenAI model to call.
-
     Precedence: explicit argument > OPENAI_MODEL env var > DEFAULT_MODEL.
     """
     if explicit:
@@ -177,7 +175,9 @@ class OpenAIClient(LLMClient):
                         {"role": "system", "content": system},
                         {"role": "user", "content": user},
                     ],
-                    max_tokens=max_tokens,
+                    # Newer OpenAI models reject max_tokens and require
+                    # max_completion_tokens instead.
+                    max_completion_tokens=max_tokens,
                     temperature=temperature,
                 )
 
