@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 """
 JudgeAI Desktop Application
 
@@ -45,8 +45,10 @@ except ImportError:
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.bedrock_client import build_client, CredentialsError
+from src.bedrock_client import build_client
+from src.llm_client import CredentialsError
 from src.config import (
+    clear_api_key,
     get_available_providers,
     load_config,
     load_into_environment,
@@ -112,7 +114,7 @@ class SettingsDialog(QDialog):
         layout.addWidget(keys_group)
 
         note = QLabel(
-            "Keys are stored in ~/.judgeai/config.json and loaded when JudgeAI starts."
+            "Keys are stored locally in plaintext at ~/.judgeai/config.json with private file permissions where supported."
         )
         note.setWordWrap(True)
         note.setStyleSheet(f"color: {COLORS['text_secondary']};")
@@ -190,11 +192,18 @@ class SettingsDialog(QDialog):
 
     def _save(self):
         try:
-            if self.anthropic_key.text().strip():
-                set_api_key("anthropic", self.anthropic_key.text().strip())
+            anthropic = self.anthropic_key.text().strip()
+            openai = self.openai_key.text().strip()
 
-            if self.openai_key.text().strip():
-                set_api_key("openai", self.openai_key.text().strip())
+            if anthropic:
+                set_api_key("anthropic", anthropic)
+            else:
+                clear_api_key("anthropic")
+
+            if openai:
+                set_api_key("openai", openai)
+            else:
+                clear_api_key("openai")
 
             selected = self.provider_combo.currentText()
 
@@ -510,7 +519,10 @@ class MainWindow(QMainWindow):
     def refresh_provider_status(self):
         try:
             client = build_client(verbose=False)
-            self.provider_status.setText(f"● {type(client).__name__}")
+            provider = getattr(client, "current_provider_name", type(client).__name__)
+            model = getattr(client, "model_id", "")
+            label = f"● {provider}" + (f" · {model}" if model else "")
+            self.provider_status.setText(label)
             self.provider_status.setStyleSheet(
                 f"padding: 8px 12px; color: {COLORS['success']}; font-weight: 600;"
             )

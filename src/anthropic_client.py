@@ -1,35 +1,28 @@
-"""
-Anthropic API client implementing the LLMClient interface.
+"""Anthropic API client implementing JudgeAI's LLMClient interface."""
 
-Supports Claude models via the direct Anthropic API (not AWS Bedrock).
-Requires ANTHROPIC_API_KEY environment variable.
-"""
-
+import logging
 import os
 import sys
 import time
-import logging
 from pathlib import Path
 from typing import Optional
 
 try:
-    import anthropic
-    from anthropic import Anthropic, APIError, APIConnectionError, APITimeoutError, AuthenticationError, RateLimitError
+    from anthropic import (
+        Anthropic,
+        APIConnectionError,
+        APIError,
+        APITimeoutError,
+        AuthenticationError,
+        RateLimitError,
+    )
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
 
-from .llm_client import (
-    LLMClient,
-    ModelResponse,
-    CredentialsError,
-    ModelInvocationError,
-)
+from .llm_client import CredentialsError, LLMClient, ModelInvocationError, ModelResponse
 
-# Default to Claude Sonnet 4.5 for high-quality judging
 DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
-
-# Anthropic API pricing per 1M tokens
 PRICING_PER_MTOK = {
     "sonnet": {"input": 3.00, "output": 15.00},
     "opus": {"input": 15.00, "output": 75.00},
@@ -37,36 +30,20 @@ PRICING_PER_MTOK = {
 }
 
 DEBUG_LOG_PATH = Path(__file__).resolve().parent.parent / "judgeai.log"
-
 _logger = logging.getLogger("judgeai.anthropic")
 if not _logger.handlers:
     _handler = logging.FileHandler(DEBUG_LOG_PATH, encoding="utf-8")
-    _handler.setFormatter(
-        logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
-    )
+    _handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s"))
     _logger.addHandler(_handler)
     _logger.setLevel(logging.DEBUG)
     _logger.propagate = False
 
-
-CREDENTIAL_HELP = """Anthropic API key is missing or invalid.
-
-Set your API key:
-
-  export ANTHROPIC_API_KEY='sk-ant-...'
-
-Get an API key at: https://console.anthropic.com/
-
-Technical detail written to {log_path}"""
+CREDENTIAL_HELP = f"""Anthropic API key is missing or invalid.
+Set ANTHROPIC_API_KEY or enter the key in JudgeAI Settings.
+Technical detail written to {DEBUG_LOG_PATH}"""
 
 
-def echo_call(
-    system: str,
-    user: str,
-    response: Optional[str] = None,
-    label: str = "model call",
-) -> None:
-    """Print a call's prompts and response for --verbose."""
+def echo_call(system: str, user: str, response: Optional[str] = None, label: str = "model call") -> None:
     divider = "-" * 70
     print(f"\n{divider}\n[{label}] SYSTEM PROMPT\n{divider}", file=sys.stderr)
     print(system, file=sys.stderr)
@@ -79,21 +56,16 @@ def echo_call(
 
 
 def _rates_for_model(model_id: str) -> dict:
-    """Pick a pricing table by model family."""
     lowered = model_id.lower()
     for family, rates in PRICING_PER_MTOK.items():
         if family in lowered:
             return rates
-    # Default to sonnet pricing if unknown
     return PRICING_PER_MTOK["sonnet"]
 
 
 class AnthropicModelResponse(ModelResponse):
-    """ModelResponse subclass with Anthropic-specific pricing."""
-
     @property
     def cost_usd(self) -> float:
-        """Estimated cost of this single call using Anthropic API pricing."""
         rates = _rates_for_model(self.model_id)
         return (
             self.input_tokens / 1_000_000 * rates["input"]
@@ -102,55 +74,23 @@ class AnthropicModelResponse(ModelResponse):
 
 
 def resolve_model_id(explicit: Optional[str] = None) -> str:
-    """
-    Decide which Claude model to call.
-
-    Precedence: explicit argument > ANTHROPIC_MODEL env var > DEFAULT_MODEL.
-
-    Note: If ANTHROPIC_MODEL contains a Bedrock-style model ID (with "us." prefix),
-    we strip the prefix since Anthropic API uses simpler model names.
-    """
-    if explicit:
-        model = explicit
-    else:
-        model = os.environ.get("ANTHROPIC_MODEL") or DEFAULT_MODEL
-
-    # Strip Bedrock-style "us." prefix if present
+    model = explicit or os.environ.get("ANTHROPIC_MODEL") or DEFAULT_MODEL
     if model.startswith("us.anthropic."):
-        model = model.replace("us.anthropic.", "")
-
+        model = model.replace("us.anthropic.", "", 1)
+    if model.endswith("-v1:0"):
+        model = model[:-5]
     return model
 
 
 class AnthropicAPIClient(LLMClient):
-    """
-    Anthropic API client implementing the LLMClient interface.
-
-    Uses the official anthropic SDK to call Claude models directly
-    (not through AWS Bedrock).
-    """
-
-    def __init__(
-        self,
-        model_id: Optional[str] = None,
-        api_key: Optional[str] = None,
-        verbose: bool = False,
-    ):
+    def __init__(self, model_id: Optional[str] = None, api_key: Optional[str] = None, verbose: bool = False):
         if not ANTHROPIC_AVAILABLE:
-            raise ImportError(
-                "Anthropic SDK not installed. Install with: pip install anthropic"
-            )
-
+            raise ImportError("Anthropic SDK not installed. Install with: pip install anthropic")
         self.model_id = resolve_model_id(model_id)
         self.verbose = verbose
-
-        # Get API key from parameter or environment
         api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
-            raise CredentialsError(
-                CREDENTIAL_HELP.format(log_path=DEBUG_LOG_PATH)
-            )
-
+            raise CredentialsError(CREDENTIAL_HELP)
         self._client = Anthropic(api_key=api_key, timeout=600.0)
 
     def invoke(
@@ -162,46 +102,30 @@ class AnthropicAPIClient(LLMClient):
         retries: int = 1,
         backoff_seconds: float = 5.0,
     ) -> ModelResponse:
-        """
-        Call Anthropic's API and return the response.
-
-        Retries on transient failures. Credential failures are never retried.
-        """
         attempt = 0
         last_error: Optional[Exception] = None
 
         while attempt <= retries:
             attempt += 1
             started = time.monotonic()
-
             try:
                 response = self._client.messages.create(
                     model=self.model_id,
                     max_tokens=max_tokens,
                     temperature=temperature,
                     system=system,
-                    messages=[
-                        {"role": "user", "content": user}
-                    ],
+                    messages=[{"role": "user", "content": user}],
                 )
-
-                # Extract response text
                 if not response.content:
                     raise ModelInvocationError(
-                        f"Anthropic returned empty content. "
-                        f"Stop reason: {response.stop_reason}"
+                        f"Anthropic returned empty content. Stop reason: {response.stop_reason}"
                     )
-
                 text = response.content[0].text
-
-                # Get token usage
                 usage = response.usage
                 input_tokens = usage.input_tokens if usage else 0
                 output_tokens = usage.output_tokens if usage else 0
-
                 if self.verbose:
                     echo_call(system, user, text, label=self.model_id)
-
                 return AnthropicModelResponse(
                     text=text,
                     input_tokens=input_tokens,
@@ -209,22 +133,22 @@ class AnthropicAPIClient(LLMClient):
                     model_id=self.model_id,
                     latency_seconds=time.monotonic() - started,
                 )
-
             except AuthenticationError as exc:
                 _logger.exception("Anthropic authentication failed")
-                raise CredentialsError(
-                    CREDENTIAL_HELP.format(log_path=DEBUG_LOG_PATH)
-                ) from exc
-
+                raise CredentialsError(CREDENTIAL_HELP) from exc
             except (APIConnectionError, APITimeoutError, RateLimitError) as exc:
-                # Transient errors - retry
                 _logger.exception("Anthropic transient error (attempt %d)", attempt)
                 last_error = exc
-
             except APIError as exc:
                 _logger.exception("Anthropic API error")
+                status_code = getattr(exc, "status_code", None)
+                if status_code is not None and 400 <= status_code < 500 and status_code != 429:
+                    raise ModelInvocationError(
+                        f"Anthropic API request failed: {exc}. Detail in {DEBUG_LOG_PATH}"
+                    ) from exc
                 last_error = exc
-
+            except ModelInvocationError:
+                raise
             except Exception as exc:  # noqa: BLE001
                 _logger.exception("Unexpected Anthropic failure")
                 last_error = exc
