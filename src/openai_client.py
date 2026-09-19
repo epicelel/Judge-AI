@@ -1,7 +1,7 @@
 """
 OpenAI API client implementing the LLMClient interface.
 
-Supports GPT-4 and other OpenAI models via the official openai SDK.
+Supports OpenAI models via the official openai SDK.
 Requires OPENAI_API_KEY environment variable.
 """
 
@@ -32,11 +32,12 @@ from .llm_client import (
     ModelInvocationError,
 )
 
-# Default to GPT-4 Turbo for quality comparable to Claude
-DEFAULT_MODEL = "gpt-4-turbo-preview"
+# Current default OpenAI model for JudgeAI.
+DEFAULT_MODEL = "gpt-5.6-luna"
 
-# OpenAI pricing per 1M tokens (as of 2024)
+# OpenAI pricing per 1M tokens.
 PRICING_PER_MTOK = {
+    "gpt-5.6-luna": {"input": 0.20, "output": 1.20},
     "gpt-4-turbo": {"input": 10.00, "output": 30.00},
     "gpt-4": {"input": 30.00, "output": 60.00},
     "gpt-3.5-turbo": {"input": 0.50, "output": 1.50},
@@ -90,8 +91,9 @@ def _rates_for_model(model_id: str) -> dict:
     for family, rates in PRICING_PER_MTOK.items():
         if family in lowered:
             return rates
-    # Default to gpt-4-turbo pricing if unknown
-    return PRICING_PER_MTOK["gpt-4-turbo"]
+
+    # Conservative fallback for unknown models.
+    return PRICING_PER_MTOK["gpt-5.6-luna"]
 
 
 class OpenAIModelResponse(ModelResponse):
@@ -110,19 +112,18 @@ class OpenAIModelResponse(ModelResponse):
 def resolve_model_id(explicit: Optional[str] = None) -> str:
     """
     Decide which OpenAI model to call.
-    Precedence: explicit argument > OPENAI_MODEL env var > DEFAULT_MODEL.
+
+    Precedence:
+    explicit argument > OPENAI_MODEL environment variable > DEFAULT_MODEL.
     """
     if explicit:
         return explicit
+
     return os.environ.get("OPENAI_MODEL") or DEFAULT_MODEL
 
 
 class OpenAIClient(LLMClient):
-    """
-    OpenAI API client implementing the LLMClient interface.
-
-    Uses the official openai SDK to call GPT-4 and other models.
-    """
+    """OpenAI API client implementing the LLMClient interface."""
 
     def __init__(
         self,
@@ -138,7 +139,6 @@ class OpenAIClient(LLMClient):
         self.model_id = resolve_model_id(model_id)
         self.verbose = verbose
 
-        # Get API key from parameter or environment
         api_key = api_key or os.environ.get("OPENAI_API_KEY")
         if not api_key:
             raise CredentialsError(
@@ -157,10 +157,11 @@ class OpenAIClient(LLMClient):
         backoff_seconds: float = 5.0,
     ) -> ModelResponse:
         """
-        Call OpenAI's API and return the response.
+        Call OpenAI's Chat Completions API and return the response.
 
-        Retries on transient failures. Credential failures are never retried.
+        Retries transient failures. Credential failures are never retried.
         """
+
         attempt = 0
         last_error: Optional[Exception] = None
 
@@ -169,19 +170,22 @@ class OpenAIClient(LLMClient):
             started = time.monotonic()
 
             try:
-                response = self._client.chat.completions.create(
-                    model=self.model_id,
-                    messages=[
+                request_args = {
+                    "model": self.model_id,
+                    "messages": [
                         {"role": "system", "content": system},
                         {"role": "user", "content": user},
                     ],
-                    # Newer OpenAI models reject max_tokens and require
-                    # max_completion_tokens instead.
-                    max_completion_tokens=max_tokens,
-                    temperature=temperature,
-                )
+                    "max_completion_tokens": max_tokens,
+                }
 
-                # Extract response
+                # Newer GPT-5-family models can reject non-default temperature
+                # depending on endpoint/model settings, so omit it there.
+                if not self.model_id.lower().startswith("gpt-5"):
+                    request_args["temperature"] = temperature
+
+                response = self._client.chat.completions.create(**request_args)
+
                 text = response.choices[0].message.content
                 if not text:
                     raise ModelInvocationError(
@@ -189,7 +193,6 @@ class OpenAIClient(LLMClient):
                         f"Finish reason: {response.choices[0].finish_reason}"
                     )
 
-                # Get token usage
                 usage = response.usage
                 input_tokens = usage.prompt_tokens if usage else 0
                 output_tokens = usage.completion_tokens if usage else 0
@@ -212,13 +215,29 @@ class OpenAIClient(LLMClient):
                 ) from exc
 
             except (APIConnectionError, APITimeoutError, RateLimitError) as exc:
-                # Transient errors - retry
                 _logger.exception("OpenAI transient error (attempt %d)", attempt)
                 last_error = exc
 
             except APIError as exc:
                 _logger.exception("OpenAI API error")
+
+                status_code = getattr(exc, "status_code", None)
+
+                # Don't retry permanent request failures such as 400/404.
+                if (
+                    status_code is not None
+                    and 400 <= status_code < 500
+                    and status_code != 429
+                ):
+                    raise ModelInvocationError(
+                        f"OpenAI API request failed: {exc}. "
+                        f"Detail in {DEBUG_LOG_PATH}"
+                    ) from exc
+
                 last_error = exc
+
+            except ModelInvocationError:
+                raise
 
             except Exception as exc:  # noqa: BLE001
                 _logger.exception("Unexpected OpenAI failure")
