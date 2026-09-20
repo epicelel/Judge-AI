@@ -17,7 +17,7 @@ from pathlib import Path
 
 try:
     from PyQt6.QtCore import Qt, QThread, pyqtSignal
-    from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QFont
+    from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QFont, QPainter, QPen
     from PyQt6.QtWidgets import (
         QApplication,
         QAbstractItemView,
@@ -75,6 +75,28 @@ COLORS = {
     "text": "#111827",
     "text_secondary": "#6B7280",
 }
+
+
+
+class CleanComboBox(QComboBox):
+    """Combo box with a reliably visible chevron on Windows."""
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+
+        pen = QPen(Qt.GlobalColor.black)
+        pen.setWidthF(1.6)
+        painter.setPen(pen)
+
+        center_x = self.width() - 20
+        center_y = self.height() // 2 - 2
+
+        painter.drawLine(center_x - 5, center_y, center_x, center_y + 5)
+        painter.drawLine(center_x, center_y + 5, center_x + 5, center_y)
+        painter.end()
 
 
 class SettingsDialog(QDialog):
@@ -461,7 +483,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
 
         layout = QVBoxLayout(central)
-        layout.setContentsMargins(30, 24, 30, 22)
+        layout.setContentsMargins(30, 24, 30, 28)
         layout.setSpacing(12)
 
         header = QHBoxLayout()
@@ -499,7 +521,7 @@ class MainWindow(QMainWindow):
         run_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-weight: 600;")
         run_row.addWidget(run_label)
 
-        self.runs_combo = QComboBox()
+        self.runs_combo = CleanComboBox()
         self.runs_combo.addItem("1 — Fast / cheapest", 1)
         self.runs_combo.addItem("3 — Recommended", 3)
         self.runs_combo.addItem("5 — More stable", 5)
@@ -511,7 +533,7 @@ class MainWindow(QMainWindow):
                 background: white;
                 border: 1px solid {COLORS['border']};
                 border-radius: 9px;
-                padding: 7px 40px 7px 12px;
+                padding: 7px 48px 7px 12px;
                 font-size: 13px;
             }}
             QComboBox:hover {{
@@ -523,16 +545,14 @@ class MainWindow(QMainWindow):
             QComboBox::drop-down {{
                 subcontrol-origin: padding;
                 subcontrol-position: top right;
-                width: 36px;
+                width: 38px;
                 border: none;
-                border-left: 1px solid {COLORS['border']};
-                border-top-right-radius: 9px;
-                border-bottom-right-radius: 9px;
-                background: white;
+                background: transparent;
             }}
             QComboBox::down-arrow {{
-                width: 11px;
-                height: 11px;
+                image: none;
+                width: 0px;
+                height: 0px;
             }}
         """)
         run_row.addWidget(self.runs_combo)
@@ -586,10 +606,17 @@ class MainWindow(QMainWindow):
         self.rounds_list.itemDoubleClicked.connect(self.open_round)
         layout.addWidget(self.rounds_list, 1)
 
+        layout.addSpacing(10)
+
         hint = QLabel(
             "Double-click a completed round to view the cross-paradigm diff and individual judge ballots."
         )
-        hint.setStyleSheet(f"color: {COLORS['text_secondary']};")
+        hint.setContentsMargins(4, 2, 0, 4)
+        hint.setStyleSheet(
+            f"color: {COLORS['text_secondary']}; "
+            "background: transparent; "
+            "padding-top: 2px;"
+        )
         layout.addWidget(hint)
 
     def _apply_style(self):
