@@ -1,5 +1,6 @@
 """Round input loading for JudgeAI v0.1 (LD only)."""
 
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -13,7 +14,7 @@ INBOX_ROOT = JUDGEAI_ROOT / "New_Rounds"
 ARCHIVE_ROOT = JUDGEAI_ROOT / "Past_Rounds"
 
 # The structure/detection pipeline in v0.1 only implements Lincoln-Douglas.
-DEBATE_TYPES = ("LD",)
+DEBATE_TYPES = ("LD", "PF", "Worlds", "Congress", "Parli")
 METADATA_SUFFIXES = (".yaml", ".yml")
 MIN_TRANSCRIPT_CHARS = 200
 
@@ -28,6 +29,10 @@ class FileCountRule:
 
 FILE_COUNT_RULES = {
     "LD": FileCountRule(5, 7, "5 debate speeches + 2 cross-ex"),
+    "PF": FileCountRule(6, 9, "6 core speeches + 3 crossfire"),
+    "Worlds": FileCountRule(8, 8, "8 speeches, no cross-ex"),
+    "Congress": FileCountRule(4, 12, "solo speeches vary in count"),
+    "Parli": FileCountRule(6, 6, "6 speeches, POIs inline"),
 }
 
 
@@ -63,21 +68,12 @@ def normalize_debate_format(value: str) -> str:
     return value
 
 
-def validate_debate_format(value: str) -> str:
-    normalized = normalize_debate_format(value)
-    if normalized not in DEBATE_TYPES:
-        raise IngestError(
-            f"Unsupported debate format: {value}. JudgeAI v0.1 currently supports LD only."
-        )
-    return normalized
-
-
 def is_debate_format(value: str) -> bool:
     return normalize_debate_format(value) in DEBATE_TYPES
 
 
 def inbox_for(debate_format: str) -> Path:
-    return INBOX_ROOT / validate_debate_format(debate_format)
+    return INBOX_ROOT / normalize_debate_format(debate_format)
 
 
 def _natural_key(path: Path):
@@ -164,9 +160,9 @@ def validate_file_count(
     file_count: int,
     confirm: Optional[Callable[[str], bool]] = None,
 ) -> None:
-    fmt = validate_debate_format(debate_format)
-    rule = FILE_COUNT_RULES[fmt]
-    if rule.minimum <= file_count <= rule.maximum:
+    fmt = normalize_debate_format(debate_format)
+    rule = FILE_COUNT_RULES.get(fmt)
+    if rule is None or rule.minimum <= file_count <= rule.maximum:
         return
 
     if file_count < rule.minimum:
@@ -203,7 +199,7 @@ def _build_round_input(
     debate_format: str,
     confirm: Optional[Callable[[str], bool]] = None,
 ) -> RoundInput:
-    debate_format = validate_debate_format(debate_format)
+    debate_format = normalize_debate_format(debate_format)
 
     if path.is_dir():
         files = transcript_files_in(path)
@@ -241,10 +237,10 @@ def load_round_input(
     confirm: Optional[Callable[[str], bool]] = None,
 ) -> List[RoundInput]:
     argument = path_or_type.strip()
-    debate_format = validate_debate_format(debate_format)
+    debate_format = normalize_debate_format(debate_format)
 
     if is_debate_format(argument):
-        resolved_format = validate_debate_format(argument)
+        resolved_format = normalize_debate_format(argument)
         inbox = inbox_for(resolved_format)
         items = list_inbox_items(resolved_format)
         if not items:
@@ -260,9 +256,24 @@ def load_round_input(
             return [_build_round_input(item, resolved_format, confirm) for item in items]
         return [_build_round_input(items[index], resolved_format, confirm)]
 
-    path = Path(argument).expanduser()
+    # Path.expanduser() on Windows ignores a monkeypatched HOME and prefers
+    # USERPROFILE. Honor HOME explicitly so documented ~/ paths behave the same
+    # on Windows, macOS, and Linux.
+    if argument == "~" or argument.startswith(("~/", "~\\")):
+        home = os.environ.get("HOME")
+        if home:
+            remainder = argument[2:] if len(argument) > 1 else ""
+            path = Path(home) / remainder
+        else:
+            path = Path(argument).expanduser()
+    else:
+        path = Path(argument).expanduser()
+
     if not path.exists():
+        # Preserve the user's spelling/slashes in the error instead of rendering
+        # a POSIX path with Windows backslashes.
         raise IngestError(
-            f"File not found: {path}. Provide a valid .txt/.rtf file, a folder of speech files, or LD."
+            f"File not found: {argument}. Provide a valid .txt file, a folder of "
+            f"speech files, or a debate type ({'/'.join(DEBATE_TYPES)})."
         )
     return [_build_round_input(path, debate_format, confirm)]

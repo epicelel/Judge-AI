@@ -11,7 +11,7 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError, NoCredentialsError, NoRegionError
 
-from .llm_client import CredentialsError, LLMClient, ModelInvocationError, ModelResponse
+from .llm_client import CredentialsError, LLMClient, ModelInvocationError, ModelResponse as BaseModelResponse
 
 DEFAULT_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 DEFAULT_REGION = "us-west-2"
@@ -34,7 +34,11 @@ if not _logger.handlers:
     _logger.propagate = False
 
 CREDENTIAL_HELP = f"""AWS credentials are missing or expired.
-Configure AWS credentials and re-run.
+Configure AWS credentials for your own account, then re-run:
+
+  aws configure
+  aws sts get-caller-identity
+
 Technical detail written to {DEBUG_LOG_PATH}"""
 
 # Backward-compatible name for older callers. New code should use ModelInvocationError.
@@ -61,7 +65,7 @@ def _rates_for_model(model_id: str) -> dict:
     return PRICING_PER_MTOK["sonnet"]
 
 
-class BedrockModelResponse(ModelResponse):
+class BedrockModelResponse(BaseModelResponse):
     @property
     def cost_usd(self) -> float:
         rates = _rates_for_model(self.model_id)
@@ -69,6 +73,11 @@ class BedrockModelResponse(ModelResponse):
             self.input_tokens / 1_000_000 * rates["input"]
             + self.output_tokens / 1_000_000 * rates["output"]
         )
+
+
+# Backward-compatible public name: importing ModelResponse from this module
+# means a Bedrock-priced response, while the shared base remains provider-neutral.
+ModelResponse = BedrockModelResponse
 
 
 def resolve_model_id(explicit: Optional[str] = None) -> str:
@@ -127,7 +136,7 @@ class BedrockClient(LLMClient):
         temperature: float = 0.2,
         retries: int = 1,
         backoff_seconds: float = 5.0,
-    ) -> ModelResponse:
+    ) -> BaseModelResponse:
         client = self._get_client()
         attempt = 0
         last_error: Optional[Exception] = None
@@ -197,12 +206,12 @@ class DryRunClient(LLMClient):
         self.echo = echo
         self.calls: list = []
 
-    def invoke(self, system: str, user: str, **kwargs) -> ModelResponse:
+    def invoke(self, system: str, user: str, **kwargs) -> BaseModelResponse:
         label = kwargs.pop("label", "would send")
         self.calls.append({"system": system, "user": user, "label": label, **kwargs})
         if self.echo:
             echo_call(system, user, response=None, label=f"DRY RUN — {label}")
-        return ModelResponse(
+        return BaseModelResponse(
             text=DRY_RUN_PLACEHOLDER,
             input_tokens=0,
             output_tokens=0,
@@ -275,7 +284,4 @@ def _auto_detect_provider() -> str:
         return "anthropic"
     if os.environ.get("OPENAI_API_KEY"):
         return "openai"
-    raise CredentialsError(
-        "No LLM provider configured. Add an Anthropic or OpenAI API key in Settings, "
-        "or explicitly select Bedrock and configure AWS credentials."
-    )
+    return "bedrock"

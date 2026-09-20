@@ -62,7 +62,7 @@ def cli() -> None:
     "debate_format",
     default="LD",
     show_default=True,
-    help="Debate format. JudgeAI v0.1 currently supports LD only.",
+    help=f"Debate format ({'/'.join(DEBATE_TYPES)}). v0.1 judging implements LD only.",
 )
 @click.option("--all", "select_all", is_flag=True, help="Judge every round in the inbox.")
 @click.option("--yes", "-y", "assume_yes", is_flag=True, help="Accept confirmation prompts automatically.")
@@ -188,7 +188,7 @@ def _run_one_round(
     else:
         proceed, structured = confirm_structure(structured)
     if not proceed:
-        click.echo("Aborted. Nothing saved, no judging tokens spent.", err=True)
+        click.echo("Aborted. Nothing saved, no tokens spent.", err=True)
         return
 
     store = LocalDiskBallotStore()
@@ -248,8 +248,14 @@ def _run_one_round(
 
     _persist_round(store, round_id, structured, metadata, result, round_input)
 
-    # A comparison needs at least two successful paradigms, regardless of how
-    # many were originally requested.
+    # Preserve the v0.1 edge-case contract: three or more persona failures
+    # abort the comparison with the established message. Also guard smaller
+    # custom persona sets from trying to diff fewer than two successful ballots.
+    if len(result.failures) >= 3 and len(paradigm_keys) > 1:
+        raise click.ClickException(
+            f"Too many persona failures ({len(result.failures)}/{len(paradigm_keys)}). "
+            f"Diff skipped. Check {DEBUG_LOG_PATH}."
+        )
     if len(paradigm_keys) > 1 and len(result.successful) < 2:
         raise click.ClickException(
             f"Only {len(result.successful)} of {len(paradigm_keys)} paradigms succeeded. "
@@ -302,7 +308,11 @@ def list_cmd(full: bool) -> None:
     store = LocalDiskBallotStore()
     rounds = store.list_rounds()
     if not rounds:
-        click.echo("No rounds judged yet.")
+        click.echo(
+            "No rounds judged yet. Drop a transcript in "
+            "~/Desktop/JudgeAI/New_Rounds/<type>/ and run "
+            "`python judge.py new <type>` to judge your first round."
+        )
         return
 
     def trunc(text: Optional[str], limit: int) -> str:
