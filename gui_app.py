@@ -24,6 +24,7 @@ try:
         QDialog,
         QFileDialog,
         QFormLayout,
+        QFrame,
         QGroupBox,
         QHBoxLayout,
         QLabel,
@@ -309,41 +310,72 @@ class JudgeWorker(QThread):
                 shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-class DropArea(QLabel):
+class DropArea(QFrame):
+    """Clickable drag-and-drop target with separate labels to avoid text clipping."""
+
     file_dropped = pyqtSignal(Path)
 
     def __init__(self):
         super().__init__()
+        self.setObjectName("dropArea")
         self.setAcceptDrops(True)
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setMinimumHeight(260)
-        self.setText(
-            "📄\n\nDrop a debate transcript here\n\nor click to browse\n\n"
-            ".txt and .rtf supported"
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setMinimumHeight(280)
+        self.setMaximumHeight(320)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(28, 26, 28, 26)
+        layout.setSpacing(8)
+        layout.addStretch()
+
+        icon = QLabel("📄")
+        icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon.setFont(QFont("Arial", 20))
+        icon.setStyleSheet("background: transparent; border: none;")
+        layout.addWidget(icon)
+
+        title = QLabel("Drop a debate transcript here")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setFont(QFont("Arial", 16))
+        title.setStyleSheet(
+            f"background: transparent; border: none; color: {COLORS['text_secondary']};"
         )
+        layout.addWidget(title)
+
+        browse = QLabel("or click to browse")
+        browse.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        browse.setFont(QFont("Arial", 15))
+        browse.setStyleSheet(
+            f"background: transparent; border: none; color: {COLORS['text_secondary']};"
+        )
+        layout.addWidget(browse)
+
+        support = QLabel(".txt and .rtf supported")
+        support.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        support.setFont(QFont("Arial", 11))
+        support.setStyleSheet(
+            f"background: transparent; border: none; color: {COLORS['text_secondary']};"
+        )
+        layout.addWidget(support)
+
+        layout.addStretch()
         self._normal_style()
 
     def _normal_style(self):
         self.setStyleSheet(f"""
-            QLabel {{
+            QFrame#dropArea {{
                 border: 3px dashed {COLORS['border']};
                 border-radius: 16px;
                 background: {COLORS['surface']};
-                padding: 50px;
-                font-size: 16pt;
-                color: {COLORS['text_secondary']};
             }}
         """)
 
     def _hover_style(self):
         self.setStyleSheet(f"""
-            QLabel {{
+            QFrame#dropArea {{
                 border: 3px dashed {COLORS['primary']};
                 border-radius: 16px;
                 background: #EFF6FF;
-                padding: 50px;
-                font-size: 16pt;
-                color: {COLORS['primary']};
             }}
         """)
 
@@ -358,14 +390,14 @@ class DropArea(QLabel):
     def dropEvent(self, event: QDropEvent):
         urls = event.mimeData().urls()
         self._normal_style()
-
         if not urls:
             return
-
         path = Path(urls[0].toLocalFile())
         self.file_dropped.emit(path)
 
     def mousePressEvent(self, event):
+        if event.button() != Qt.MouseButton.LeftButton:
+            return
         path, _ = QFileDialog.getOpenFileName(
             self,
             "Choose Transcript",

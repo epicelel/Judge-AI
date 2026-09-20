@@ -64,9 +64,12 @@ FOR NEG:
 
 Recommendation patterns by vote share:
 - **Won 3/3 (clear):** "Strategy working — keep [specific thing they did well]"
-- **Won 2/3 (slight lean):** "Won overall, but 1 run dissented on [issue]. Shore up [specific fix] to lock this at 3/3"
-- **Lost 2/3 (slight lean):** "Close! 1 run went your way when [what worked]. Do [specific action] to flip this to 3/3 win"
+- **Won 2/3 (slight lean):** "Won overall, but 1 run dissented on [issue]. Address [specific fix] to make the result more consistent across runs"
+- **Lost 2/3 (slight lean):** "Close — 1 run went this side's way when [what worked]. Add [specific action] to give this judge type a stronger reason to vote this side"
 - **Lost 3/3 (clear):** "To win this judge type: [major specific change needed]"
+
+- **Partial runs:** If a decision includes `run unavailable` or `runs unavailable`, explicitly preserve that note. Do not count an unavailable run as a dissent, do not guess how it would have voted, and do not describe a partial result as equivalent to a full 3-run result.
+- **No guarantees:** Recommendations should say what may improve consistency or strengthen the case. Never claim a change will definitely "lock", "flip", or guarantee a future result.
 
 Each recommendation must:
 - Be argument-level specific (not "get better evidence")

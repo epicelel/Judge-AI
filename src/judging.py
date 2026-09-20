@@ -265,8 +265,32 @@ class ParadigmVerdict:
 
     @property
     def vote_share(self) -> str:
-        """e.g. "2/3" — shown alongside the label, being strictly more informative."""
+        """Vote share among runs that produced a parseable ballot, e.g. ``2/3``."""
         return f"{self.votes_for_winner}/{len(self.completed)}"
+
+    @property
+    def attempted_runs(self) -> int:
+        return len(self.runs)
+
+    @property
+    def completed_runs(self) -> int:
+        return len(self.completed)
+
+    @property
+    def unavailable_runs(self) -> int:
+        """Runs that failed or did not produce a parseable winner."""
+        return max(0, self.attempted_runs - self.completed_runs)
+
+    @property
+    def display_vote_share(self) -> str:
+        """Human-facing vote share that makes partial-run results explicit."""
+        if not self.unavailable_runs:
+            return self.vote_share
+        noun = "run" if self.unavailable_runs == 1 else "runs"
+        return (
+            f"{self.vote_share} successful; "
+            f"{self.unavailable_runs}/{self.attempted_runs} {noun} unavailable"
+        )
 
     @property
     def label(self) -> str:
@@ -300,7 +324,7 @@ class ParadigmVerdict:
         """The one-line decision, e.g. "AFF (2/3) slight lean"."""
         if self.failed:
             return "FAILED — no ballot"
-        return f"{self.winner} ({self.vote_share}) {self.label}"
+        return f"{self.winner} ({self.display_vote_share}) {self.label}"
 
     @property
     def input_tokens(self) -> int:
@@ -320,8 +344,11 @@ class ParadigmVerdict:
             "winner": self.winner,
             "label": self.label,
             "vote_share": self.vote_share,
+            "display_vote_share": self.display_vote_share,
             "run_winners": self.winners,
             "runs": len(self.runs),
+            "completed_runs": self.completed_runs,
+            "unavailable_runs": self.unavailable_runs,
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
             "cost_usd": round(self.cost_usd, 6),
@@ -333,7 +360,7 @@ class ParadigmVerdict:
     def provenance_header(self, display_name: str) -> str:
         """Prepended to the saved ballot so the file records how it was decided."""
         return (
-            f"<!-- JudgeAI: {display_name} · {self.winner} {self.vote_share} · "
+            f"<!-- JudgeAI: {display_name} · {self.winner} {self.display_vote_share} · "
             f"{self.label} · {len(self.runs)} run(s) -->\n\n"
         )
 
@@ -608,7 +635,7 @@ def diff_decision_line(verdict: ParadigmVerdict) -> str:
     The exact decision string the diff must reproduce, label-first to match the
     §4.6 format: e.g. "slight lean AFF (2/3)", "clear AFF (3/3)".
     """
-    return f"{verdict.label} {verdict.winner} ({verdict.vote_share})"
+    return f"{verdict.label} {verdict.winner} ({verdict.display_vote_share})"
 
 
 def build_diff_input(
@@ -636,6 +663,14 @@ def build_diff_input(
             "",
             "NOTE: Every paradigm below reached the SAME winner (a blowout). Use "
             "the all-agree line for the PRIMARY FLIP POINT.",
+        ]
+    partial = [v for v in result.verdicts if v.unavailable_runs]
+    if partial:
+        lines += [
+            "",
+            "NOTE: One or more paradigms had unavailable runs. Treat only completed "
+            "runs as votes; do not describe an unavailable run as a dissent or infer "
+            "how it would have voted.",
         ]
     lines += [
         "",
