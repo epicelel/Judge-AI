@@ -17,10 +17,12 @@ rather than silently discarded.
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+import re
+from typing import Any, Callable, Dict, Optional, Sequence
 
 import yaml
 
+from .documents import read_transcript_text
 from .ingest import IngestError
 
 # Field names as they appear in round.yaml, matched case-insensitively.
@@ -39,8 +41,199 @@ PROMPTS = {
 SOURCE_YAML = "round.yaml"
 SOURCE_FLAG = "--resolution flag"
 SOURCE_DETECTED = "auto-detected"
+SOURCE_TRANSCRIPT = "transcript-detected"
 SOURCE_PROMPT = "prompted"
 SOURCE_SKIPPED = "skipped"
+
+
+# Explicit participant labels commonly found in transcript headers.  These are
+# intentionally conservative: a false speaker name is worse than falling back to
+# the generic Aff/Neg labels.
+_SIDE_ALIASES = {
+    "aff": "aff",
+    "affirmative": "aff",
+    "pro": "aff",
+    "prop": "aff",
+    "proposition": "aff",
+    "neg": "neg",
+    "negative": "neg",
+    "con": "neg",
+    "opp": "neg",
+    "opposition": "neg",
+}
+
+_GENERIC_PARTICIPANTS = {
+    "aff", "affirmative", "affirmative speaker", "affirmative team",
+    "pro", "prop", "proposition", "proposition team",
+    "neg", "negative", "negative speaker", "negative team",
+    "con", "opp", "opposition", "opposition team",
+    "speaker", "unknown", "n/a", "na", "tbd",
+}
+
+# "Aff: Eliana", "Affirmative Speaker - Eliana", and combined lines such as
+# "Aff: Eliana | Neg: Marcus".
+_SIDE_THEN_NAME = re.compile(
+    r"(?i)(?:^|[|;])\s*"
+    r"(aff(?:irmative)?|pro(?:position)?|prop|neg(?:ative)?|con|opp(?:osition)?)"
+    r"(?:\s+(?:speaker|debater|team))?\s*[:=\-]\s*([^|;\r\n]+)"
+)
+
+# Templates also appear as "Eliana: Aff" or "George & Ryan: Pro".
+_NAME_THEN_SIDE = re.compile(
+    r"(?i)^\s*([^|;:\r\n]{1,80}?)\s*[:=\-]\s*"
+    r"(aff(?:irmative)?|pro(?:position)?|prop|neg(?:ative)?|con|opp(?:osition)?)"
+    r"(?:\s+(?:speaker|debater|team))?\s*$"
+)
+
+_SELF_INTRO = re.compile(
+    r"(?i)\bmy\s+name(?:\s+is|'s|’s)\s+"
+    r"([A-Za-z][A-Za-z'’.-]*(?:\s+[A-Za-z][A-Za-z'’.-]*){0,5})"
+)
+
+_INTRO_STOPWORDS = {
+    "and", "but", "today", "i", "we", "will", "am", "affirm", "affirming",
+    "negate", "negating", "represent", "representing", "from", "here", "your",
+    "the", "this", "our", "on", "for",
+}
+
+
+def _side_key(label: str) -> Optional[str]:
+    """Normalize an Aff/Neg/Pro/Con-style side word to ``aff`` or ``neg``."""
+    lowered = re.sub(r"[^a-z]", "", str(label).lower())
+    if lowered.startswith("affirmative"):
+        lowered = "affirmative"
+    elif lowered.startswith("negative"):
+        lowered = "negative"
+    elif lowered.startswith("proposition"):
+        lowered = "proposition"
+    elif lowered.startswith("opposition"):
+        lowered = "opposition"
+    return _SIDE_ALIASES.get(lowered)
+
+
+def _clean_participant(value: str) -> Optional[str]:
+    """Return a plausible participant/team name or ``None`` when it is generic."""
+    if not value:
+        return None
+    text = re.sub(r"\s+", " ", str(value)).strip(" \t\r\n-:;|[]{}()\"'")
+    # Remove a trailing role annotation such as "Eliana (Aff)".
+    text = re.sub(
+        r"(?i)\s*[\[(]\s*(?:aff(?:irmative)?|pro(?:position)?|prop|"
+        r"neg(?:ative)?|con|opp(?:osition)?)\s*[\])]\s*$",
+        "",
+        text,
+    ).strip()
+    if not text or len(text) > 80:
+        return None
+    if text.lower() in _GENERIC_PARTICIPANTS:
+        return None
+    # Long prose after a colon is almost certainly not a name/team label.
+    if len(text.split()) > 8:
+        return None
+    return text
+
+
+def _header_participants(text: str) -> Dict[str, str]:
+    """Extract explicit side/name pairs from transcript/template header lines."""
+    found: Dict[str, str] = {}
+    for line in text.splitlines():
+        if len(found) == 2:
+            break
+        # A single line may contain both sides: ``Aff: A | Neg: B``.
+        for match in _SIDE_THEN_NAME.finditer(line):
+            side = _side_key(match.group(1))
+            name = _clean_participant(match.group(2))
+            if side and name and side not in found:
+                found[side] = name
+        if len(found) == 2:
+            break
+        match = _NAME_THEN_SIDE.match(line)
+        if match:
+            name = _clean_participant(match.group(1))
+            side = _side_key(match.group(2))
+            if side and name and side not in found:
+                found[side] = name
+    return found
+
+
+def _self_intro_name(text: str) -> Optional[str]:
+    """Read a conservative ``my name is ...`` introduction near a speech start."""
+    match = _SELF_INTRO.search(text[:1800])
+    if not match:
+        return None
+    words = match.group(1).split()
+    kept = []
+    for word in words:
+        normalized = re.sub(r"[^a-z]", "", word.lower())
+        if kept and normalized in _INTRO_STOPWORDS:
+            break
+        kept.append(word)
+    return _clean_participant(" ".join(kept))
+
+
+def _speech_side(label: Optional[str]) -> Optional[str]:
+    if label in {"1AC", "1AR", "2AR"}:
+        return "aff"
+    if label in {"1NC", "2NR"}:
+        return "neg"
+    return None
+
+
+def _speech_text(speech) -> str:
+    source = getattr(speech, "path", None)
+    if source is None:
+        return ""
+    try:
+        if isinstance(source, Path):
+            return read_transcript_text(source)
+        return source.read_text()
+    except (OSError, AttributeError):
+        return ""
+
+
+def detect_participant_names(
+    files: Sequence[Path],
+    speeches: Sequence[object] = (),
+) -> Dict[str, Optional[str]]:
+    """
+    Detect Aff/Neg participant names without an extra model call.
+
+    Priority inside this detector:
+      1. explicit transcript/template headers (``Aff: Eliana``)
+      2. a ``my name is ...`` introduction in a side-specific LD speech
+
+    The metadata resolver still gives round.yaml higher precedence, so this can
+    never overwrite user-supplied metadata. Generic labels such as ``Aff: Aff``
+    are deliberately ignored.
+    """
+    found: Dict[str, str] = {}
+
+    for path in files:
+        try:
+            text = read_transcript_text(Path(path))
+        except Exception:
+            continue
+        for side, name in _header_participants(text).items():
+            found.setdefault(side, name)
+        if len(found) == 2:
+            break
+
+    if len(found) < 2:
+        ordered = sorted(
+            speeches,
+            key=lambda speech: getattr(speech, "position", None) or 999,
+        )
+        for speech in ordered:
+            side = _speech_side(getattr(speech, "label", None))
+            if not side or side in found:
+                continue
+            name = _self_intro_name(_speech_text(speech))
+            if name:
+                found[side] = name
+            if len(found) == 2:
+                break
+
+    return {"aff": found.get("aff"), "neg": found.get("neg")}
 
 
 @dataclass
@@ -143,6 +336,8 @@ def resolve_metadata(
     yaml_metadata: Optional[Dict[str, Optional[str]]] = None,
     cli_resolution: Optional[str] = None,
     detected_resolution: Optional[str] = None,
+    detected_aff: Optional[str] = None,
+    detected_neg: Optional[str] = None,
     prompt: Optional[Callable[[str], str]] = None,
 ) -> RoundMetadata:
     """
@@ -169,11 +364,15 @@ def resolve_metadata(
         meta.resolution = _clean(detected_resolution)
         meta.sources["resolution"] = SOURCE_DETECTED
 
-    # --- speakers: yaml > prompt ---
+    # --- speakers: yaml > transcript detection > prompt ---
+    detected_speakers = {"aff": _clean(detected_aff), "neg": _clean(detected_neg)}
     for name in ("aff", "neg"):
         if _clean(supplied.get(name)):
             setattr(meta, name, _clean(supplied[name]))
             meta.sources[name] = SOURCE_YAML
+        elif detected_speakers[name]:
+            setattr(meta, name, detected_speakers[name])
+            meta.sources[name] = SOURCE_TRANSCRIPT
 
     # --- prompt for whatever is left, one field at a time, in order ---
     ask = prompt or _default_prompt

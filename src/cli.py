@@ -36,6 +36,7 @@ from .llm_client import CredentialsError, ModelInvocationError
 from .metadata import (
     RoundMetadata,
     confirm_detected_resolution,
+    detect_participant_names,
     load_metadata_file,
     resolve_metadata,
 )
@@ -162,10 +163,13 @@ def _run_one_round(
             return
 
     _report_structure(labeling)
+    participants = detect_participant_names(round_input.files, labeling.speeches)
     metadata = resolve_metadata(
         yaml_metadata=yaml_metadata,
         cli_resolution=resolution,
         detected_resolution=detected_resolution,
+        detected_aff=participants.get("aff"),
+        detected_neg=participants.get("neg"),
         prompt=(lambda _prompt: "") if assume_yes else None,
     )
     _report_metadata(metadata, round_input)

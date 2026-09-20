@@ -35,6 +35,7 @@ try:
         QMessageBox,
         QProgressBar,
         QPushButton,
+        QTabWidget,
         QTextEdit,
         QVBoxLayout,
         QWidget,
@@ -56,6 +57,7 @@ from src.config import (
     set_api_key,
     set_provider_preference,
 )
+from src.judging import PARADIGMS
 from src.storage import LocalDiskBallotStore, StorageError
 
 
@@ -464,6 +466,25 @@ class MainWindow(QMainWindow):
         self.drop_area.file_dropped.connect(self.start_judging)
         layout.addWidget(self.drop_area)
 
+        run_row = QHBoxLayout()
+        run_label = QLabel("Runs per paradigm:")
+        run_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-weight: 600;")
+        run_row.addWidget(run_label)
+
+        self.runs_combo = QComboBox()
+        self.runs_combo.addItem("1 — Fast / cheapest", 1)
+        self.runs_combo.addItem("3 — Recommended", 3)
+        self.runs_combo.addItem("5 — More stable", 5)
+        self.runs_combo.setCurrentIndex(1)
+        self.runs_combo.setMinimumWidth(190)
+        run_row.addWidget(self.runs_combo)
+
+        run_help = QLabel("More runs cost more but reduce single-run variance.")
+        run_help.setStyleSheet(f"color: {COLORS['text_secondary']};")
+        run_row.addWidget(run_help)
+        run_row.addStretch()
+        layout.addLayout(run_row)
+
         self.progress = QProgressBar()
         self.progress.setVisible(False)
         self.progress.setRange(0, 0)
@@ -496,7 +517,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.rounds_list)
 
         hint = QLabel(
-            "Double-click a completed round to view its cross-paradigm result."
+            "Double-click a completed round to view the cross-paradigm diff and individual judge ballots."
         )
         hint.setStyleSheet(f"color: {COLORS['text_secondary']};")
         layout.addWidget(hint)
@@ -519,7 +540,7 @@ class MainWindow(QMainWindow):
             QPushButton:hover {{
                 border-color: {COLORS['primary']};
             }}
-            QLineEdit {{
+            QLineEdit, QComboBox {{
                 background: white;
                 border: 1px solid {COLORS['border']};
                 border-radius: 8px;
@@ -621,11 +642,13 @@ class MainWindow(QMainWindow):
             )
             return
 
+        runs = int(self.runs_combo.currentData() or 3)
+        run_word = "run" if runs == 1 else "runs"
         answer = QMessageBox.question(
             self,
             "Judge Round",
             "Judge this transcript now?\n\n"
-            "This will make paid API calls. The default is 3 runs per paradigm.",
+            f"This will make paid API calls using {runs} {run_word} per paradigm.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
 
@@ -633,10 +656,11 @@ class MainWindow(QMainWindow):
             return
 
         self.drop_area.setVisible(False)
+        self.runs_combo.setEnabled(False)
         self.progress.setVisible(True)
         self.progress.setFormat("Starting JudgeAI...")
 
-        self.worker = JudgeWorker(path, runs=3)
+        self.worker = JudgeWorker(path, runs=runs)
         self.worker.progress.connect(self.progress.setFormat)
         self.worker.finished.connect(self.judging_finished)
         self.worker.start()
@@ -644,6 +668,7 @@ class MainWindow(QMainWindow):
     def judging_finished(self, result: dict):
         self.progress.setVisible(False)
         self.drop_area.setVisible(True)
+        self.runs_combo.setEnabled(True)
 
         if not result.get("success"):
             QMessageBox.critical(
@@ -658,26 +683,7 @@ class MainWindow(QMainWindow):
         round_id = result.get("round_id") or "Unknown"
         diff = result.get("diff") or "Round completed, but no diff was found."
 
-        dialog = QDialog(self)
-        dialog.setWindowTitle(f"JudgeAI Result — {round_id}")
-        dialog.resize(850, 650)
-
-        layout = QVBoxLayout(dialog)
-
-        title = QLabel(f"✓ Round complete\n{round_id}")
-        title.setFont(QFont("Arial", 15, QFont.Weight.Bold))
-        layout.addWidget(title)
-
-        output = QTextEdit()
-        output.setReadOnly(True)
-        output.setPlainText(diff)
-        layout.addWidget(output)
-
-        close = QPushButton("Close")
-        close.clicked.connect(dialog.accept)
-        layout.addWidget(close)
-
-        dialog.exec()
+        self._show_round_dialog(round_id, fallback_diff=diff, just_completed=True)
 
     def refresh_rounds(self):
         try:
@@ -720,39 +726,91 @@ class MainWindow(QMainWindow):
             widget_item.setData(Qt.ItemDataRole.UserRole, round_id)
             self.rounds_list.addItem(widget_item)
 
-    def open_round(self, item: QListWidgetItem):
-        round_id = item.data(Qt.ItemDataRole.UserRole)
-        if not round_id:
-            return
+    @staticmethod
+    def _text_tab(content: str) -> QTextEdit:
+        view = QTextEdit()
+        view.setReadOnly(True)
+        view.setPlainText(content)
+        return view
+
+    @staticmethod
+    def _clean_ballot_for_display(content: str) -> str:
+        # Saved ballots begin with a machine-readable provenance comment. The
+        # tab title/decision summary already exposes that information, so hide
+        # the raw HTML comment from the human-facing viewer.
+        return re.sub(r"^<!--.*?-->\s*", "", content, count=1, flags=re.DOTALL)
+
+    def _ordered_personas(self, metadata: dict, round_id: str):
+        decisions = metadata.get("decisions") or {}
+        available = set(self.store.personas_for(round_id)) | set(decisions.keys())
+        registry_order = {key: index for index, key in enumerate(PARADIGMS.keys())}
+        return sorted(available, key=lambda key: (registry_order.get(key, 999), key))
+
+    def _show_round_dialog(
+        self,
+        round_id: str,
+        fallback_diff: str = "",
+        just_completed: bool = False,
+    ):
+        try:
+            metadata = self.store.load_metadata(round_id)
+        except Exception:
+            metadata = {}
 
         try:
-            content = self.store.load_diff(round_id)
+            diff = self.store.load_diff(round_id)
         except StorageError:
-            try:
-                meta = self.store.load_metadata(round_id)
-                content = (
-                    "No cross-paradigm diff is saved for this round.\n\n"
-                    f"Metadata:\n{meta}"
-                )
-            except Exception as exc:
-                content = f"Could not load round:\n\n{exc}"
+            diff = fallback_diff or "No cross-paradigm diff is saved for this round."
 
         dialog = QDialog(self)
-        dialog.setWindowTitle(f"Round — {round_id}")
-        dialog.resize(850, 650)
-
+        dialog.setWindowTitle(
+            f"JudgeAI Result — {round_id}" if just_completed else f"Round — {round_id}"
+        )
+        dialog.resize(980, 720)
         layout = QVBoxLayout(dialog)
 
-        text = QTextEdit()
-        text.setReadOnly(True)
-        text.setPlainText(content)
-        layout.addWidget(text)
+        resolution = metadata.get("resolution") or "Resolution not detected"
+        aff = metadata.get("aff") or "Aff"
+        neg = metadata.get("neg") or "Neg"
+        heading = QLabel(
+            ("✓ Round complete\n" if just_completed else "")
+            + f"{aff} vs {neg}\n{resolution}"
+        )
+        heading.setWordWrap(True)
+        heading.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        layout.addWidget(heading)
+
+        tabs = QTabWidget()
+        tabs.addTab(self._text_tab(diff), "Cross-Paradigm")
+
+        decisions = metadata.get("decisions") or {}
+        for persona in self._ordered_personas(metadata, round_id):
+            paradigm = PARADIGMS.get(persona)
+            display_name = paradigm.display_name if paradigm else persona
+            decision = decisions.get(persona)
+            try:
+                ballot = self.store.load_ballot(round_id, persona)
+                ballot = self._clean_ballot_for_display(ballot)
+                content = (f"Decision: {decision}\n\n" if decision else "") + ballot
+            except StorageError:
+                content = (
+                    (f"Decision: {decision}\n\n" if decision else "")
+                    + "No saved representative ballot is available for this paradigm."
+                )
+            tabs.addTab(self._text_tab(content), display_name)
+
+        layout.addWidget(tabs)
 
         close = QPushButton("Close")
         close.clicked.connect(dialog.accept)
         layout.addWidget(close)
-
         dialog.exec()
+
+    def open_round(self, item: QListWidgetItem):
+        round_id = item.data(Qt.ItemDataRole.UserRole)
+        if round_id:
+            self._show_round_dialog(round_id)
+
 
 
 def main():
