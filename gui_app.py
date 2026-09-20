@@ -20,6 +20,7 @@ try:
     from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QFont
     from PyQt6.QtWidgets import (
         QApplication,
+        QAbstractItemView,
         QComboBox,
         QDialog,
         QFileDialog,
@@ -35,6 +36,7 @@ try:
         QMessageBox,
         QProgressBar,
         QPushButton,
+        QSizePolicy,
         QTabWidget,
         QTextEdit,
         QVBoxLayout,
@@ -149,11 +151,32 @@ class SettingsDialog(QDialog):
                 padding: 14px;
                 font-weight: 600;
             }}
-            QLineEdit, QComboBox {{
+            QLineEdit {{
                 background: white;
                 border: 1px solid {COLORS['border']};
                 border-radius: 7px;
                 padding: 9px;
+            }}
+            QComboBox {{
+                background: white;
+                border: 1px solid {COLORS['border']};
+                border-radius: 7px;
+                padding: 8px 38px 8px 10px;
+                min-height: 22px;
+            }}
+            QComboBox::drop-down {{
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 34px;
+                border: none;
+                border-left: 1px solid {COLORS['border']};
+                border-top-right-radius: 7px;
+                border-bottom-right-radius: 7px;
+                background: white;
+            }}
+            QComboBox::down-arrow {{
+                width: 11px;
+                height: 11px;
             }}
             QPushButton {{
                 padding: 9px 18px;
@@ -322,23 +345,27 @@ class DropArea(QFrame):
         self.setObjectName("dropArea")
         self.setAcceptDrops(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setMinimumHeight(280)
-        self.setMaximumHeight(320)
+        self.setMinimumHeight(180)
+        self.setMaximumHeight(205)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(28, 26, 28, 26)
-        layout.setSpacing(8)
+        layout.setContentsMargins(22, 15, 22, 15)
+        layout.setSpacing(4)
         layout.addStretch()
 
         icon = QLabel("📄")
         icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        icon.setFont(QFont("Arial", 20))
+        icon.setFont(QFont("Arial", 18))
         icon.setStyleSheet("background: transparent; border: none;")
         layout.addWidget(icon)
 
         title = QLabel("Drop a debate transcript here")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setFont(QFont("Arial", 16))
+        title.setFont(QFont("Arial", 14))
         title.setStyleSheet(
             f"background: transparent; border: none; color: {COLORS['text_secondary']};"
         )
@@ -346,7 +373,7 @@ class DropArea(QFrame):
 
         browse = QLabel("or click to browse")
         browse.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        browse.setFont(QFont("Arial", 15))
+        browse.setFont(QFont("Arial", 13))
         browse.setStyleSheet(
             f"background: transparent; border: none; color: {COLORS['text_secondary']};"
         )
@@ -354,7 +381,7 @@ class DropArea(QFrame):
 
         support = QLabel(".txt and .rtf supported")
         support.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        support.setFont(QFont("Arial", 11))
+        support.setFont(QFont("Arial", 10))
         support.setStyleSheet(
             f"background: transparent; border: none; color: {COLORS['text_secondary']};"
         )
@@ -421,7 +448,8 @@ class MainWindow(QMainWindow):
         self.all_rounds = []
 
         self.setWindowTitle("JudgeAI")
-        self.setMinimumSize(980, 760)
+        self.setMinimumSize(980, 720)
+        self.resize(1180, 820)
 
         self._build_ui()
         self._apply_style()
@@ -433,8 +461,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
 
         layout = QVBoxLayout(central)
-        layout.setContentsMargins(36, 32, 36, 32)
-        layout.setSpacing(18)
+        layout.setContentsMargins(30, 24, 30, 22)
+        layout.setSpacing(12)
 
         header = QHBoxLayout()
 
@@ -476,7 +504,37 @@ class MainWindow(QMainWindow):
         self.runs_combo.addItem("3 — Recommended", 3)
         self.runs_combo.addItem("5 — More stable", 5)
         self.runs_combo.setCurrentIndex(1)
-        self.runs_combo.setMinimumWidth(190)
+        self.runs_combo.setMinimumWidth(230)
+        self.runs_combo.setFixedHeight(42)
+        self.runs_combo.setStyleSheet(f"""
+            QComboBox {{
+                background: white;
+                border: 1px solid {COLORS['border']};
+                border-radius: 9px;
+                padding: 7px 40px 7px 12px;
+                font-size: 13px;
+            }}
+            QComboBox:hover {{
+                border-color: #CBD5E1;
+            }}
+            QComboBox:focus {{
+                border: 1px solid {COLORS['primary']};
+            }}
+            QComboBox::drop-down {{
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 36px;
+                border: none;
+                border-left: 1px solid {COLORS['border']};
+                border-top-right-radius: 9px;
+                border-bottom-right-radius: 9px;
+                background: white;
+            }}
+            QComboBox::down-arrow {{
+                width: 11px;
+                height: 11px;
+            }}
+        """)
         run_row.addWidget(self.runs_combo)
 
         run_help = QLabel("More runs cost more but reduce single-run variance.")
@@ -513,8 +571,20 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.search)
 
         self.rounds_list = QListWidget()
+        self.rounds_list.setMinimumHeight(240)
+        self.rounds_list.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding,
+        )
+        self.rounds_list.setVerticalScrollMode(
+            QAbstractItemView.ScrollMode.ScrollPerPixel
+        )
+        self.rounds_list.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+        self.rounds_list.setWordWrap(True)
         self.rounds_list.itemDoubleClicked.connect(self.open_round)
-        layout.addWidget(self.rounds_list)
+        layout.addWidget(self.rounds_list, 1)
 
         hint = QLabel(
             "Double-click a completed round to view the cross-paradigm diff and individual judge ballots."
@@ -540,7 +610,7 @@ class MainWindow(QMainWindow):
             QPushButton:hover {{
                 border-color: {COLORS['primary']};
             }}
-            QLineEdit, QComboBox {{
+            QLineEdit {{
                 background: white;
                 border: 1px solid {COLORS['border']};
                 border-radius: 8px;
@@ -551,11 +621,48 @@ class MainWindow(QMainWindow):
                 border: 1px solid {COLORS['border']};
                 border-radius: 10px;
                 padding: 6px;
+                outline: none;
             }}
             QListWidget::item {{
-                padding: 12px;
-                margin: 3px;
+                background: {COLORS['surface']};
+                color: {COLORS['text']};
+                padding: 10px 12px;
+                margin: 2px;
+                border: 1px solid transparent;
                 border-bottom: 1px solid {COLORS['border']};
+                border-radius: 6px;
+            }}
+            QListWidget::item:hover {{
+                background: #F8FAFC;
+                color: {COLORS['text']};
+            }}
+            QListWidget::item:selected,
+            QListWidget::item:selected:active,
+            QListWidget::item:selected:!active {{
+                background: #EFF6FF;
+                color: {COLORS['text']};
+                border: 1px solid #BFDBFE;
+            }}
+            QScrollBar:vertical {{
+                background: transparent;
+                width: 12px;
+                margin: 4px 2px 4px 2px;
+            }}
+            QScrollBar::handle:vertical {{
+                background: #CBD5E1;
+                min-height: 34px;
+                border-radius: 5px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background: #94A3B8;
+            }}
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {{
+                height: 0px;
+            }}
+            QScrollBar::add-page:vertical,
+            QScrollBar::sub-page:vertical {{
+                background: transparent;
             }}
             QProgressBar {{
                 background: white;
