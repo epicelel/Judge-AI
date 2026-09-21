@@ -9,7 +9,9 @@ from typing import Callable, List, Optional
 from .documents import DocumentError, is_transcript_file, read_transcript_text
 from .structure import order_speech_files
 
-JUDGEAI_ROOT = Path.home() / "Desktop" / "JudgeAI"
+# User-owned JudgeAI data belongs in Documents rather than beside the source
+# code or directly on the Desktop.
+JUDGEAI_ROOT = Path.home() / "Documents" / "JudgeAI"
 INBOX_ROOT = JUDGEAI_ROOT / "New_Rounds"
 ARCHIVE_ROOT = JUDGEAI_ROOT / "Past_Rounds"
 

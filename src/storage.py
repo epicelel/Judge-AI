@@ -6,7 +6,7 @@ the storage backend can be swapped (local disk now, S3 in v0.6+) without
 refactoring application code.
 
 Canonical layout:
-    ~/Desktop/JudgeAI/Ballots/<Round_ID>/
+    ~/Documents/JudgeAI/Ballots/<Round_ID>/
         metadata.json
         structured_transcript.md
         diff.md                  <- the primary output
@@ -16,13 +16,22 @@ Canonical layout:
 import json
 import random
 import re
+import shutil
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-DEFAULT_BALLOTS_ROOT = Path.home() / "Desktop" / "JudgeAI" / "Ballots"
+USER_DATA_ROOT = Path.home() / "Documents" / "JudgeAI"
+LEGACY_USER_DATA_ROOT = Path.home() / "Desktop" / "JudgeAI"
+
+CANONICAL_BALLOTS_ROOT = USER_DATA_ROOT / "Ballots"
+DEFAULT_BALLOTS_ROOT = CANONICAL_BALLOTS_ROOT
+
+# Only these application-data folders are imported from the old Desktop layout.
+# Source files are deliberately left in place as a backup.
+_LEGACY_IMPORT_FOLDERS = ("Ballots", "Past_Rounds", "New_Rounds")
 
 UNKNOWN_RESOLUTION = "unknown-resolution"
 UNKNOWN_AFF = "unknown-aff"
@@ -42,6 +51,65 @@ FLOW_FILE = "flow.md"
 
 class StorageError(Exception):
     """Raised when durable state can't be read or written."""
+
+
+def import_legacy_user_data(
+    legacy_root: Optional[Path] = None,
+    current_root: Optional[Path] = None,
+) -> int:
+    """Copy missing JudgeAI user data from the old Desktop layout.
+
+    v0.9 moved user-owned files from ``~/Desktop/JudgeAI`` to
+    ``~/Documents/JudgeAI``. Existing users may already have ballots and
+    archived transcripts in the Desktop location.
+
+    The migration is intentionally conservative:
+    - only Ballots, Past_Rounds, and New_Rounds are considered;
+    - existing destination files are never overwritten;
+    - the legacy source is left untouched as a backup.
+
+    Returns the number of files copied.
+    """
+    source_root = Path(legacy_root) if legacy_root else LEGACY_USER_DATA_ROOT
+    destination_root = Path(current_root) if current_root else USER_DATA_ROOT
+
+    if source_root == destination_root or not source_root.exists():
+        return 0
+
+    copied = 0
+    for folder_name in _LEGACY_IMPORT_FOLDERS:
+        source = source_root / folder_name
+        if not source.exists():
+            continue
+
+        destination = destination_root / folder_name
+
+        try:
+            if source.is_file():
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                if not destination.exists():
+                    shutil.copy2(source, destination)
+                    copied += 1
+                continue
+
+            for item in source.rglob("*"):
+                relative = item.relative_to(source)
+                target = destination / relative
+
+                if item.is_dir():
+                    target.mkdir(parents=True, exist_ok=True)
+                    continue
+
+                if item.is_file() and not target.exists():
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(item, target)
+                    copied += 1
+        except OSError:
+            # Migration must never prevent JudgeAI from launching. If a legacy
+            # file cannot be copied, the old Desktop copy remains untouched.
+            continue
+
+    return copied
 
 
 def slugify(text: Optional[str], max_words: int = 3) -> str:
@@ -173,10 +241,15 @@ class BallotStore(ABC):
 
 
 class LocalDiskBallotStore(BallotStore):
-    """v0.1 default: writes under ~/Desktop/JudgeAI/Ballots/."""
+    """Default local store under ~/Documents/JudgeAI/Ballots/."""
 
     def __init__(self, base_path: Optional[Path] = None):
         self.base_path = Path(base_path) if base_path else DEFAULT_BALLOTS_ROOT
+
+        # Import old Desktop data only when using the real default location.
+        # Tests and callers that supply a custom base_path remain isolated.
+        if base_path is None and self.base_path == CANONICAL_BALLOTS_ROOT:
+            import_legacy_user_data()
 
     # --- paths ---------------------------------------------------------
 

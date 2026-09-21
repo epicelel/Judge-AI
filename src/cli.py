@@ -389,7 +389,7 @@ def list_cmd(full: bool) -> None:
     if not rounds:
         click.echo(
             "No rounds judged yet. Drop a transcript in "
-            "~/Desktop/JudgeAI/New_Rounds/<type>/ and run "
+            "~/Documents/JudgeAI/New_Rounds/<type>/ and run "
             "`python judge.py new <type>` to judge your first round."
         )
         return

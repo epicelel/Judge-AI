@@ -78,11 +78,23 @@ Open **Settings** in the app, choose a provider, and add the API key. The GUI st
 7. Review the overall split, cross-paradigm analysis, and individual ballots.
 8. Export or revisit the round from **Recent Rounds**.
 
-JudgeAI saves round artifacts under:
+JudgeAI keeps user-owned round data separate from the application itself.
+
+On Windows this is normally:
 
 ```text
-~/Desktop/JudgeAI/Ballots/<Round_ID>/
+C:\Users\<you>\Documents\JudgeAI\
 ```
+
+Round artifacts are saved under:
+
+```text
+~/Documents/JudgeAI/Ballots/<Round_ID>/
+```
+
+If you used an older JudgeAI build that stored data under
+`~/Desktop/JudgeAI`, v0.9 imports missing ballots, archived rounds, and inbox
+files into the Documents location without deleting the old copies.
 
 Each round can contain:
 
