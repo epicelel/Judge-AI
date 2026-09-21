@@ -46,6 +46,7 @@ try:
         QProgressBar,
         QPushButton,
         QSizePolicy,
+        QStackedWidget,
         QTabWidget,
         QTextEdit,
         QVBoxLayout,
@@ -523,10 +524,15 @@ class JudgeWorker(_SubprocessWorker):
 
             store = LocalDiskBallotStore()
             partial = False
+            analysis_failed = False
             if code != 0:
                 partial = bool(round_id and store.round_path(round_id).exists())
                 if not partial:
                     raise RuntimeError(combined or f"JudgeAI exited with code {code}")
+                analysis_failed = (
+                    "Cross-paradigm diff failed:" in combined
+                    or "Could not save diff:" in combined
+                )
 
             if round_id:
                 try:
@@ -543,14 +549,15 @@ class JudgeWorker(_SubprocessWorker):
                 try:
                     diff_text = store.load_diff(round_id)
                 except Exception:
-                    diff_text = stdout.strip()
+                    diff_text = ""
 
             self.finished.emit(
                 {
                     "success": True,
                     "partial": partial,
+                    "analysis_failed": analysis_failed,
                     "round_id": round_id,
-                    "diff": diff_text or stdout.strip(),
+                    "diff": diff_text,
                     "log": combined,
                     "warning": combined if partial else "",
                 }
@@ -560,6 +567,50 @@ class JudgeWorker(_SubprocessWorker):
         finally:
             if temp_dir:
                 shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+class AnalysisRetryWorker(_SubprocessWorker):
+    def __init__(self, round_id: str):
+        super().__init__()
+        self.round_id = round_id
+
+    def run(self):
+        try:
+            self.progress.emit("Regenerating cross-paradigm analysis…")
+            command = [
+                *cli_prefix(),
+                "retry-analysis",
+                self.round_id,
+            ]
+            code, stdout, stderr = self._run_command(command)
+            combined = (stdout + "\n" + stderr).strip()
+
+            if self._cancelled:
+                self.finished.emit(
+                    {"success": False, "cancelled": True, "round_id": self.round_id}
+                )
+                return
+
+            if code != 0:
+                raise RuntimeError(
+                    combined or f"JudgeAI exited with code {code}"
+                )
+
+            self.finished.emit(
+                {
+                    "success": True,
+                    "round_id": self.round_id,
+                    "log": combined,
+                }
+            )
+        except Exception as exc:
+            self.finished.emit(
+                {
+                    "success": False,
+                    "round_id": self.round_id,
+                    "error": str(exc),
+                }
+            )
 
 
 class RetryWorker(_SubprocessWorker):
@@ -712,35 +763,61 @@ class MainWindow(QMainWindow):
         self.drop_area.file_dropped.connect(self.prepare_round)
         layout.addWidget(self.drop_area)
 
-        run_row = QHBoxLayout()
+        # The idle controls and active progress UI occupy the SAME fixed-height
+        # slot. Showing progress therefore cannot push the run controls upward
+        # into the transcript drop area or shift Recent Rounds downward.
+        self.work_status_stack = QStackedWidget()
+        self.work_status_stack.setFixedHeight(48)
+
+        idle_status = QWidget()
+        run_row = QHBoxLayout(idle_status)
+        run_row.setContentsMargins(0, 2, 0, 2)
         run_label = QLabel("Default runs for next round:")
-        run_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-weight: 600;")
+        run_label.setStyleSheet(
+            f"color: {COLORS['text_secondary']}; font-weight: 600;"
+        )
         run_row.addWidget(run_label)
+
         self.runs_combo = CleanComboBox()
-        for runs, text in ((1, "1 — Fast / cheapest"), (3, "3 — Recommended"), (5, "5 — More stable")):
+        for runs, text in (
+            (1, "1 — Fast / cheapest"),
+            (3, "3 — Recommended"),
+            (5, "5 — More stable"),
+        ):
             self.runs_combo.addItem(text, runs)
         default_runs = get_gui_defaults()["default_runs"]
-        self.runs_combo.setCurrentIndex(max(0, self.runs_combo.findData(default_runs)))
+        self.runs_combo.setCurrentIndex(
+            max(0, self.runs_combo.findData(default_runs))
+        )
         self.runs_combo.setMinimumWidth(230)
         self.runs_combo.setFixedHeight(42)
         run_row.addWidget(self.runs_combo)
-        run_help = QLabel("You can change paradigms, names, resolution, and runs before each round.")
+
+        run_help = QLabel(
+            "You can change paradigms, names, resolution, and runs before each round."
+        )
         run_help.setStyleSheet(f"color: {COLORS['text_secondary']};")
         run_row.addWidget(run_help)
         run_row.addStretch()
-        layout.addLayout(run_row)
 
-        progress_row = QHBoxLayout()
+        busy_status = QWidget()
+        progress_row = QHBoxLayout(busy_status)
+        progress_row.setContentsMargins(0, 2, 0, 2)
         self.progress = QProgressBar()
-        self.progress.setVisible(False)
         self.progress.setRange(0, 0)
         self.progress.setMinimumHeight(40)
         progress_row.addWidget(self.progress, 1)
+
         self.cancel_button = QPushButton("Cancel")
-        self.cancel_button.setVisible(False)
         self.cancel_button.clicked.connect(self.cancel_current_work)
         progress_row.addWidget(self.cancel_button)
-        layout.addLayout(progress_row)
+
+        self.work_status_stack.addWidget(idle_status)
+        self.work_status_stack.addWidget(busy_status)
+        self.work_status_stack.setCurrentWidget(idle_status)
+        self._idle_status_page = idle_status
+        self._busy_status_page = busy_status
+        layout.addWidget(self.work_status_stack)
 
         rounds_header = QHBoxLayout()
         rounds_title = QLabel("Recent Rounds")
@@ -895,10 +972,11 @@ class MainWindow(QMainWindow):
         self._launch_judging(path, setup)
 
     def _set_busy(self, busy: bool, message: str = ""):
-        self.progress.setVisible(busy)
-        self.cancel_button.setVisible(busy)
         self.drop_area.setEnabled(not busy)
         self.runs_combo.setEnabled(not busy)
+        self.work_status_stack.setCurrentWidget(
+            self._busy_status_page if busy else self._idle_status_page
+        )
         if busy:
             self.progress.setFormat(message or "Working…")
 
@@ -930,13 +1008,32 @@ class MainWindow(QMainWindow):
 
         round_id = result.get("round_id") or "Unknown"
         if result.get("partial"):
-            QMessageBox.warning(
-                self,
-                "Round completed with limits",
-                "JudgeAI saved the parts of the round that completed, but at least one later step failed. "
-                "Open the result to see what is available and retry an individual paradigm if needed.",
-            )
-        self._show_round_dialog(round_id, fallback_diff=result.get("diff") or "", just_completed=True)
+            box = QMessageBox(self)
+            box.setIcon(QMessageBox.Icon.Warning)
+            if result.get("analysis_failed"):
+                box.setWindowTitle("Judging complete — analysis unavailable")
+                box.setText(
+                    "The selected paradigm ballots were saved successfully, but the "
+                    "cross-paradigm analysis failed. Open the result and use Retry "
+                    "Analysis to regenerate only the synthesis. The judges will not rerun."
+                )
+            else:
+                box.setWindowTitle("Round completed with limits")
+                box.setText(
+                    "JudgeAI saved the parts of the round that completed, but at least "
+                    "one later step failed. Open the result to see what is available."
+                )
+            if result.get("warning"):
+                box.setDetailedText(result["warning"])
+            box.addButton(QMessageBox.StandardButton.OK)
+            box.exec()
+
+        self._show_round_dialog(
+            round_id,
+            fallback_diff=result.get("diff") or "",
+            just_completed=True,
+            analysis_failed=bool(result.get("analysis_failed")),
+        )
 
     def _show_failure(self, raw_error: str, can_retry: bool = False):
         title, friendly = classify_run_error(raw_error)
@@ -1092,26 +1189,65 @@ class MainWindow(QMainWindow):
             tabs.append((persona, content))
         return ballots, tabs
 
-    def _show_round_dialog(self, round_id: str, fallback_diff: str = "", just_completed: bool = False):
+    def _show_round_dialog(
+        self,
+        round_id: str,
+        fallback_diff: str = "",
+        just_completed: bool = False,
+        analysis_failed: bool = False,
+    ):
         try:
             metadata = self.store.load_metadata(round_id)
         except Exception:
             metadata = {}
+
+        has_diff = False
         try:
             diff = self.store.load_diff(round_id)
+            has_diff = bool(diff.strip())
         except StorageError:
-            diff = fallback_diff or "No cross-paradigm analysis is saved for this round."
+            diff = fallback_diff.strip()
+            has_diff = bool(diff)
+
+        if not has_diff:
+            diff = (
+                "Cross-paradigm analysis is unavailable for this round.\n\n"
+                "The saved paradigm ballots are still valid. Click Retry Analysis below "
+                "to regenerate only the synthesis without rerunning the judges."
+            )
 
         ballots_by_name, persona_tabs = self._load_ballots(metadata, round_id)
         dialog = QDialog(self)
         dialog.setWindowTitle(f"JudgeAI Result — {round_id}")
-        dialog.resize(1050, 780)
+
+        # Keep the full result window inside the usable desktop area.
+        # This matters on Windows at 125%/150% display scaling, where a fixed
+        # 780px logical height can extend below the taskbar and hide buttons.
+        screen = dialog.screen() or QApplication.primaryScreen()
+        if screen is not None:
+            available = screen.availableGeometry()
+            target_width = min(1050, max(760, available.width() - 80))
+            target_height = min(780, max(560, available.height() - 80))
+            dialog.resize(target_width, target_height)
+        else:
+            dialog.resize(1000, 700)
+
+        dialog.setMinimumSize(760, 560)
+
         layout = QVBoxLayout(dialog)
+        layout.setContentsMargins(14, 14, 14, 14)
+        layout.setSpacing(8)
 
         resolution = metadata.get("resolution") or "Resolution not detected"
         aff = metadata.get("aff") or "Aff"
         neg = metadata.get("neg") or "Neg"
-        heading = QLabel(("✓ Round complete\n" if just_completed else "") + f"{aff} vs {neg}\n{resolution}")
+        if just_completed and not has_diff and len(persona_tabs) >= 2:
+            status_line = "⚠ Judging complete — analysis unavailable\n"
+        elif just_completed:
+            status_line = "✓ Round complete\n"
+        else:
+            status_line = ""
+        heading = QLabel(status_line + f"{aff} vs {neg}\n{resolution}")
         heading.setWordWrap(True)
         heading.setFont(QFont("Arial", 14, QFont.Weight.Bold))
         layout.addWidget(heading)
@@ -1131,14 +1267,27 @@ class MainWindow(QMainWindow):
         layout.addLayout(card_grid)
 
         tabs = QTabWidget()
+        tabs.setMinimumHeight(220)
         tab_personas: list[Optional[str]] = [None]
         tabs.addTab(self._text_tab(diff), "Cross-Paradigm")
         for persona, content in persona_tabs:
-            tabs.addTab(self._text_tab(content), PARADIGMS.get(persona).display_name if persona in PARADIGMS else persona)
+            tabs.addTab(
+                self._text_tab(content),
+                PARADIGMS.get(persona).display_name if persona in PARADIGMS else persona,
+            )
             tab_personas.append(persona)
         layout.addWidget(tabs, 1)
 
-        buttons = QHBoxLayout()
+        # Keep actions in their own fixed-height row so they remain visible
+        # even on shorter/high-DPI displays.
+        button_bar = QWidget()
+        button_bar.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
+        buttons = QHBoxLayout(button_bar)
+        buttons.setContentsMargins(0, 4, 0, 0)
+        buttons.setSpacing(8)
         copy_button = QPushButton("Copy Current Tab")
         buttons.addWidget(copy_button)
         export_button = QPushButton("Export Report")
@@ -1150,11 +1299,15 @@ class MainWindow(QMainWindow):
         retry_button = QPushButton("Retry This Paradigm")
         retry_button.setEnabled(False)
         buttons.addWidget(retry_button)
+
+        retry_analysis_button = QPushButton("Retry Analysis")
+        retry_analysis_button.setVisible(not has_diff and len(persona_tabs) >= 2)
+        buttons.addWidget(retry_analysis_button)
         buttons.addStretch()
         close = QPushButton("Close")
         close.clicked.connect(dialog.accept)
         buttons.addWidget(close)
-        layout.addLayout(buttons)
+        layout.addWidget(button_bar)
 
         def current_view() -> Optional[QTextEdit]:
             widget = tabs.currentWidget()
@@ -1184,9 +1337,22 @@ class MainWindow(QMainWindow):
                 dialog.accept()
                 self.start_retry(round_id, persona, runs)
 
+        def retry_analysis_only():
+            answer = QMessageBox.question(
+                dialog,
+                "Retry cross-paradigm analysis",
+                "Regenerate the cross-paradigm analysis from the saved ballots?\n\n"
+                "This makes one paid synthesis API call. It does not rerun any judge.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            )
+            if answer == QMessageBox.StandardButton.Yes:
+                dialog.accept()
+                self.start_analysis_retry(round_id)
+
         copy_button.clicked.connect(copy_current)
         tabs.currentChanged.connect(update_retry)
         retry_button.clicked.connect(retry_current)
+        retry_analysis_button.clicked.connect(retry_analysis_only)
         folder_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.store.round_path(round_id)))))
         transcript_button.clicked.connect(lambda: self._open_transcript(round_id))
         export_button.clicked.connect(lambda: self._export_round(round_id, metadata, diff, ballots_by_name, dialog))
@@ -1241,6 +1407,50 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Transcript", "No original or saved structured transcript exists for this round.")
             return
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+
+    def start_analysis_retry(self, round_id: str):
+        if self.worker and self.worker.isRunning():
+            QMessageBox.warning(
+                self,
+                "JudgeAI",
+                "Another judging task is already running.",
+            )
+            return
+
+        self._set_busy(True, "Regenerating cross-paradigm analysis…")
+        self.worker = AnalysisRetryWorker(round_id)
+        self.worker.progress.connect(self.progress.setFormat)
+        self.worker.finished.connect(self.analysis_retry_finished)
+        self.worker.start()
+
+    def analysis_retry_finished(self, result: dict):
+        self._set_busy(False)
+        self.cancel_button.setEnabled(True)
+        self.refresh_rounds()
+
+        if result.get("cancelled"):
+            QMessageBox.information(self, "JudgeAI", "Analysis retry cancelled.")
+            return
+
+        if not result.get("success"):
+            self._show_failure(
+                result.get("error", "Cross-paradigm analysis failed."),
+                can_retry=False,
+            )
+            round_id = result.get("round_id")
+            if round_id:
+                self._show_round_dialog(round_id, analysis_failed=True)
+            return
+
+        round_id = result.get("round_id")
+        QMessageBox.information(
+            self,
+            "JudgeAI",
+            "Cross-paradigm analysis regenerated from the saved ballots. "
+            "No judge was rerun.",
+        )
+        if round_id:
+            self._show_round_dialog(round_id)
 
     def start_retry(self, round_id: str, persona: str, runs: int):
         if self.worker and self.worker.isRunning():

@@ -130,6 +130,71 @@ def reconstruct_saved_result(
     return SavedResult(verdicts)
 
 
+def retry_analysis(
+    client,
+    store: LocalDiskBallotStore,
+    round_id: str,
+) -> dict:
+    """Regenerate only the cross-paradigm synthesis for a saved round.
+
+    Existing paradigm ballots are reused exactly as saved. No paradigm is
+    rejudged, so this costs only one synthesis model call.
+    """
+    metadata = store.load_metadata(round_id)
+    saved_result = reconstruct_saved_result(store, round_id, metadata)
+
+    if len(saved_result.successful) < 2:
+        raise ValueError(
+            "Cross-paradigm analysis needs at least two successful saved paradigms."
+        )
+
+    response = generate_diff(
+        client=client,
+        round_id=round_id,
+        date=metadata.get("date") or datetime.now().strftime("%Y-%m-%d"),
+        resolution=metadata.get("resolution"),
+        aff=metadata.get("aff") or "Aff",
+        neg=metadata.get("neg") or "Neg",
+        result=saved_result,
+    )
+    store.save_diff(round_id, response.text)
+
+    usage = metadata.setdefault("token_usage", {})
+    usage["diff"] = {
+        "input_tokens": response.input_tokens,
+        "output_tokens": response.output_tokens,
+        "cost_usd": round(response.cost_usd, 6),
+    }
+
+    metadata["total_input_tokens"] = (
+        int(metadata.get("total_input_tokens") or 0) + response.input_tokens
+    )
+    metadata["total_output_tokens"] = (
+        int(metadata.get("total_output_tokens") or 0) + response.output_tokens
+    )
+    metadata["total_cost_usd"] = round(
+        float(metadata.get("total_cost_usd") or 0) + response.cost_usd,
+        6,
+    )
+    metadata.setdefault("analysis_retry_history", []).append(
+        {
+            "date": datetime.now().isoformat(timespec="seconds"),
+            "input_tokens": response.input_tokens,
+            "output_tokens": response.output_tokens,
+            "cost_usd": round(response.cost_usd, 6),
+        }
+    )
+    store.save_metadata(round_id, metadata)
+
+    return {
+        "round_id": round_id,
+        "text": response.text,
+        "input_tokens": response.input_tokens,
+        "output_tokens": response.output_tokens,
+        "cost_usd": response.cost_usd,
+    }
+
+
 def retry_paradigm(
     client,
     store: LocalDiskBallotStore,

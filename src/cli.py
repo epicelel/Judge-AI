@@ -317,6 +317,34 @@ def _run_one_round(
     click.echo("\n" + cost_line(result.input_tokens, result.output_tokens, result.cost_usd), err=True)
 
 
+@cli.command("retry-analysis")
+@click.argument("round_id")
+@click.option("--verbose", is_flag=True, help="Print model prompts/responses to stderr.")
+def retry_analysis_cmd(round_id: str, verbose: bool) -> None:
+    """Regenerate only the cross-paradigm analysis for a saved round."""
+    from .round_ops import retry_analysis
+
+    store = LocalDiskBallotStore()
+    resolved = _resolve_single(store, round_id)
+    client = _build_reported_client(verbose=verbose)
+
+    click.echo(
+        f"Retrying cross-paradigm analysis for {resolved}...",
+        err=True,
+    )
+    try:
+        result = retry_analysis(client, store, resolved)
+    except (StorageError, ModelInvocationError, CredentialsError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+    click.echo(
+        f"Cross-paradigm analysis refreshed "
+        f"({result['output_tokens']} out, ${result['cost_usd']:.4f}).",
+        err=True,
+    )
+    click.echo(result["text"])
+
+
 @cli.command("retry")
 @click.argument("round_id")
 @click.option(

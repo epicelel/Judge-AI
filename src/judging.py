@@ -625,7 +625,12 @@ def needs_flow(paradigms: Sequence[str]) -> bool:
 # --- The cross-paradigm diff (Epic 4, Story 4.1) -----------------------
 
 DIFF_PROMPT = "cross_persona_diff"
-DIFF_MAX_TOKENS = 1500
+# OpenAI reasoning models count internal reasoning tokens against
+# max_completion_tokens as well as visible output. 1,500 can therefore be
+# exhausted before the synthesis emits any text (finish_reason='length').
+# The diff prompt is still instructed to stay compact; this is a ceiling,
+# not a requested output length.
+DIFF_MAX_TOKENS = 6000
 # Synthesis, not judgment: low temperature keeps the diff faithful to the ballots.
 DIFF_TEMPERATURE = 0.2
 
