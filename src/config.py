@@ -29,6 +29,18 @@ _DEFAULT_GUI_SETTINGS = {
     "default_paradigms": ["lay", "educated_lay", "traditional", "circuit"],
 }
 
+
+_DEFAULT_UI_STATE = {
+    "theme": "system",
+    "recent_search": "",
+    "recent_format": "all",
+    "recent_winner": "all",
+    "recent_sort": "newest",
+    "window_geometry": None,
+    "window_maximized": False,
+    "onboarding_complete": False,
+}
+
 _MODEL_ENV = {
     "anthropic": "ANTHROPIC_MODEL",
     "openai": "OPENAI_MODEL",
@@ -213,6 +225,101 @@ def set_gui_defaults(runs: int, paradigms: Iterable[str]) -> None:
     config = load_config()
     config["default_runs"] = runs
     config["default_paradigms"] = cleaned
+    save_config(config)
+
+
+def get_theme_preference() -> str:
+    value = str(load_config().get("theme", _DEFAULT_UI_STATE["theme"])).strip().lower()
+    return value if value in {"system", "light", "dark"} else "system"
+
+
+def set_theme_preference(theme: str) -> None:
+    value = (theme or "system").strip().lower()
+    if value not in {"system", "light", "dark"}:
+        raise ValueError("Theme must be system, light, or dark.")
+    config = load_config()
+    config["theme"] = value
+    save_config(config)
+
+
+def get_ui_state() -> dict:
+    """Return validated persistent desktop UI state."""
+    config = load_config()
+
+    search = str(config.get("recent_search", "") or "")
+    recent_format = str(config.get("recent_format", "all") or "all")
+    recent_winner = str(config.get("recent_winner", "all") or "all")
+    recent_sort = str(config.get("recent_sort", "newest") or "newest")
+
+    if recent_format not in {"all", "LD", "PF", "Worlds", "Congress", "Parli"}:
+        recent_format = "all"
+    if recent_winner not in {"all", "AFF", "NEG", "split"}:
+        recent_winner = "all"
+    if recent_sort not in {"newest", "oldest", "aff", "neg", "resolution", "result"}:
+        recent_sort = "newest"
+
+    geometry = config.get("window_geometry")
+    if (
+        not isinstance(geometry, list)
+        or len(geometry) != 4
+        or not all(isinstance(value, int) for value in geometry)
+    ):
+        geometry = None
+
+    return {
+        "recent_search": search,
+        "recent_format": recent_format,
+        "recent_winner": recent_winner,
+        "recent_sort": recent_sort,
+        "window_geometry": geometry,
+        "window_maximized": bool(config.get("window_maximized", False)),
+    }
+
+
+def set_ui_state(
+    *,
+    recent_search: str,
+    recent_format: str,
+    recent_winner: str,
+    recent_sort: str,
+    window_geometry: Optional[list[int]],
+    window_maximized: bool,
+) -> None:
+    """Persist window/history state without touching API credentials."""
+    config = load_config()
+    config["recent_search"] = str(recent_search or "")
+    config["recent_format"] = (
+        recent_format
+        if recent_format in {"all", "LD", "PF", "Worlds", "Congress", "Parli"}
+        else "all"
+    )
+    config["recent_winner"] = (
+        recent_winner if recent_winner in {"all", "AFF", "NEG", "split"} else "all"
+    )
+    config["recent_sort"] = (
+        recent_sort
+        if recent_sort in {"newest", "oldest", "aff", "neg", "resolution", "result"}
+        else "newest"
+    )
+    if (
+        isinstance(window_geometry, list)
+        and len(window_geometry) == 4
+        and all(isinstance(value, int) for value in window_geometry)
+    ):
+        config["window_geometry"] = window_geometry
+    else:
+        config.pop("window_geometry", None)
+    config["window_maximized"] = bool(window_maximized)
+    save_config(config)
+
+
+def is_onboarding_complete() -> bool:
+    return bool(load_config().get("onboarding_complete", False))
+
+
+def set_onboarding_complete(complete: bool = True) -> None:
+    config = load_config()
+    config["onboarding_complete"] = bool(complete)
     save_config(config)
 
 

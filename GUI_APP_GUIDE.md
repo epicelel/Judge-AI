@@ -60,3 +60,13 @@ JudgeAI-CLI.exe
 ```
 
 Keep both files together. The desktop app uses the CLI helper internally so packaged and source installs share the same judging pipeline.
+
+## v0.9 desktop quality-of-life
+
+JudgeAI now supports Light, Dark, and Follow System themes; remembers
+window/history state; supports sorting, display names, and pinned rounds; shows
+more specific progress messages; can send a desktop completion notification;
+and includes first-run onboarding plus an About screen.
+
+On Windows, source users can also double-click `RUN_JUDGEAI.bat` for first-time
+environment setup and later launches.

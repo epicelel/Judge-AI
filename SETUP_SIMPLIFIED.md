@@ -1,6 +1,29 @@
 # JudgeAI v0.9 — Simple Setup
 
-## Windows
+## Windows: easiest source setup
+
+1. Download the JudgeAI repository ZIP (or clone the repository).
+2. Open the JudgeAI folder.
+3. Double-click:
+
+```text
+RUN_JUDGEAI.bat
+```
+
+The first launch automatically:
+
+- finds Python 3
+- creates `.venv`
+- installs `requirements.txt`
+- starts the desktop app
+
+Later launches reuse the environment and open JudgeAI directly.
+
+You still need Python 3.12 or newer for this source-based launcher. The v1.0
+distribution goal is a packaged Windows app that does not require Python or
+command-line setup.
+
+## Manual Windows setup
 
 ```powershell
 git clone https://github.com/epicelel/Judge-AI.git
@@ -10,9 +33,22 @@ python -m venv .venv
 .\.venv\Scripts\python.exe gui_app.py
 ```
 
-Open **Settings**, select OpenAI or Anthropic, paste the API key, and save.
+## First launch
 
-Drop a `.txt` or `.rtf` LD transcript into the app. JudgeAI will show a review screen before any paid model calls so the resolution, names, paradigms, and run count can be corrected.
+JudgeAI walks through three small steps:
+
+1. choose/configure OpenAI or Anthropic
+2. choose default paradigms and 1/3/5 runs
+3. upload a `.txt` or `.rtf` LD transcript
+
+Settings also includes a **Test Connection** button that checks provider/model
+access without running a debate-judging generation.
+
+User data is stored under:
+
+```text
+Documents\JudgeAI
+```
 
 ## Test the install
 

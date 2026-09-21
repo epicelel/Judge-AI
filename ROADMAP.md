@@ -31,3 +31,18 @@ The remaining work is validation rather than another large feature batch:
 - create a tagged GitHub release with packaged artifacts
 
 Additional debate formats should be treated as separately validated features rather than assumed extensions of LD.
+
+## v0.9 QoL pass — implemented
+
+- Theme support
+- Persistent desktop state
+- History sorting, labels, and pins
+- API connection test
+- Better live progress
+- Completion notifications
+- Onboarding
+- About/version UI
+- One-click source launcher on Windows
+
+The remaining setup goal for v1.0 is a tested packaged installer/app so ordinary
+users do not need Python, Git, a terminal, or the source tree.

@@ -223,14 +223,14 @@ def _run_one_round(
     flow_text = None
     flow_response = None
     if needs_flow(paradigm_keys):
-        click.echo("\nFlowing the round... ", nl=False, err=True)
+        click.echo("\nFlowing the round...", err=True)
         try:
             flow_response = extract_flow(client, structured)
         except (ModelInvocationError, CredentialsError) as exc:
             raise click.ClickException(f"Flow extraction failed: {exc}") from exc
         flow_text = flow_response.text
         click.echo(
-            f"done  {flow_response.output_tokens:>4} out, "
+            f"  Flow complete: {flow_response.output_tokens:>4} out, "
             f"{flow_response.latency_seconds:>5.1f}s, "
             f"${flow_response.cost_usd:.4f}",
             err=True,
@@ -283,7 +283,7 @@ def _run_one_round(
         else:
             raise click.ClickException("The only requested persona failed.")
     else:
-        click.echo("\nGenerating cross-paradigm diff... ", nl=False, err=True)
+        click.echo("\nGenerating cross-paradigm diff...", err=True)
         try:
             diff_response = generate_diff(
                 client,
@@ -301,7 +301,7 @@ def _run_one_round(
         result.diff_output_tokens = diff_response.output_tokens
         result.diff_cost_usd = diff_response.cost_usd
         click.echo(
-            f"done  {diff_response.output_tokens:>4} out, "
+            f"  Analysis complete: {diff_response.output_tokens:>4} out, "
             f"{diff_response.latency_seconds:>5.1f}s, "
             f"${diff_response.cost_usd:.4f}",
             err=True,

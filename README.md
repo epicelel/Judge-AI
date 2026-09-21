@@ -36,15 +36,45 @@ JudgeAI outputs are model-generated assessments. They are not predictions of wha
 - Stronger transcript-grounding rules for judging prompts
 - Windows/macOS packaging configuration with PyInstaller
 
+### v0.9 quality-of-life pass
+
+- Light, Dark, and Follow System themes
+- Restores window size/position and maximized state
+- Remembers Recent Rounds search, filters, and sort
+- Newest/Oldest/Aff/Neg/Resolution/Result sorting
+- Optional display names for saved rounds
+- Pin important rounds to the top
+- Zero-generation API/model connection test in Settings
+- Streaming progress text during the CLI judging pipeline
+- Desktop completion notifications when JudgeAI is in the background
+- Three-step first-run onboarding
+- Version indicator plus About screen
+- About screen links to GitHub/Releases and opens the Documents data folder
+- One-click `RUN_JUDGEAI.bat` setup/launcher for Windows source users
+
+
 ## Supported debate format
 
 The judging pipeline currently implements **Lincoln-Douglas (LD)**. Historical metadata may contain other debate-format labels, and the history screen can filter those labels, but PF/Worlds/Congress/Parli judging is not yet implemented in the v0.9 desktop workflow.
 
-## Quick start from source
+## Quick start
 
-Requires Python 3.12 or newer and an OpenAI or Anthropic API key.
+### Easiest Windows source setup
 
-### Windows
+If you downloaded the repository ZIP or cloned it, double-click:
+
+```text
+RUN_JUDGEAI.bat
+```
+
+On the first launch it creates a private `.venv`, installs the required Python
+packages, and starts JudgeAI. Later launches reuse the same environment.
+
+This still requires Python 3.12 or newer. The v1.0 distribution goal is a
+normal packaged desktop download that does not require users to install Python
+or work with source code.
+
+### Manual Windows setup
 
 ```powershell
 git clone https://github.com/epicelel/Judge-AI.git
@@ -65,7 +95,9 @@ python -m pip install -r requirements.txt
 python gui_app.py
 ```
 
-Open **Settings** in the app, choose a provider, and add the API key. The GUI stores saved keys locally in `~/.judgeai/config.json`.
+On first launch JudgeAI shows a short onboarding flow for provider setup,
+default paradigms/runs, and the transcript workflow.
+
 
 ## Normal desktop workflow
 

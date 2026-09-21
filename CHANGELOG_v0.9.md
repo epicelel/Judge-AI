@@ -62,3 +62,14 @@ v0.9 is the feature-complete pre-1.0 release.
 ## Version
 
 - CLI and desktop app now identify as JudgeAI v0.9
+
+## Quality-of-life update
+
+- Light / Dark / Follow System themes
+- Persistent window geometry and Recent Rounds filters/sort
+- Round display names and pins
+- Provider connection test
+- Streaming progress labels and background completion notifications
+- First-run onboarding
+- Version/About/data-folder UI
+- One-click Windows source launcher (`RUN_JUDGEAI.bat`)
