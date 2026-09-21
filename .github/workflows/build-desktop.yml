@@ -1,0 +1,48 @@
+name: Build desktop apps
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -r requirements.txt -r requirements-build.txt
+      - name: Test
+        run: python -m pytest tests -q
+      - name: Build
+        run: python -m PyInstaller --noconfirm --clean JudgeAI.spec
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JudgeAI-Windows
+          path: |
+            dist/JudgeAI.exe
+            dist/JudgeAI-CLI.exe
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -r requirements.txt -r requirements-build.txt
+      - name: Test
+        run: python -m pytest tests -q
+      - name: Build
+        run: python -m PyInstaller --noconfirm --clean JudgeAI.spec
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JudgeAI-macOS
+          path: |
+            dist/JudgeAI
+            dist/JudgeAI-CLI

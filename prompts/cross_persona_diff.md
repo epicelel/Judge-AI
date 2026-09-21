@@ -12,6 +12,10 @@ exactly.
 - **Name specific arguments** from the ballots — e.g. "Early 18", "the CX
   concession on zero probability", "Randall '22". Never generic phrases like
   "the second contention".
+- **Stay inside the saved ballots.** Never invent an argument name, source, concession,
+  statistic, or causal story that does not appear in at least one ballot. If the ballots
+  disagree about whether something happened, describe that disagreement rather than
+  resolving it yourself.
 - **No percentages** anywhere. Use only the labels and vote shares given.
 - **Fit one screen (~50 lines).** One line per paradigm. Be terse.
 - Use the Aff/Neg labels from the round header.
@@ -62,11 +66,13 @@ FOR NEG:
 [Paradigm name] (lost [share]): [recommendation]
 [Paradigm name] (lost [share]): [recommendation]
 
-Recommendation patterns by vote share:
-- **Won 3/3 (clear):** "Strategy working — keep [specific thing they did well]"
-- **Won 2/3 (slight lean):** "Won overall, but 1 run dissented on [issue]. Address [specific fix] to make the result more consistent across runs"
-- **Lost 2/3 (slight lean):** "Close — 1 run went this side's way when [what worked]. Add [specific action] to give this judge type a stronger reason to vote this side"
-- **Lost 3/3 (clear):** "To win this judge type: [major specific change needed]"
+Recommendation patterns by vote share (works for 1, 3, or 5 runs):
+- **Won every completed run (clear):** "Strategy working — keep [specific thing they did well]"
+- **Won a non-unanimous majority (slight lean):** "Won overall, but some runs dissented on [issue]. Address [specific fix] to make the result more consistent across runs"
+- **Lost a non-unanimous majority (slight lean):** "Close or contested — some runs went this side's way when [what worked]. Add [specific action] to give this judge type a stronger reason to vote this side"
+- **Lost every completed run (clear):** "To win this judge type: [major specific change needed]"
+
+Do not assume there were three runs. Read the denominator from the supplied vote share.
 
 - **Partial runs:** If a decision includes `run unavailable` or `runs unavailable`, explicitly preserve that note. Do not count an unavailable run as a dissent, do not guess how it would have voted, and do not describe a partial result as equivalent to a full 3-run result.
 - **No guarantees:** Recommendations should say what may improve consistency or strengthen the case. Never claim a change will definitely "lock", "flip", or guarantee a future result.

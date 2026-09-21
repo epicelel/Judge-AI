@@ -43,16 +43,17 @@ from .metadata import (
 from .storage import LocalDiskBallotStore, StorageError, generate_round_id
 from .structure import label_files
 from .transcript import format_structured_transcript, summarize_speeches
+from .version import VERSION_LABEL
 
 
 def print_banner() -> None:
     # Do not claim a model before provider selection actually happens.
-    click.echo("JudgeAI v0.1", err=True)
+    click.echo(VERSION_LABEL, err=True)
 
 
 @click.group()
 def cli() -> None:
-    """JudgeAI v0.1 — multi-paradigm LD debate judge."""
+    """JudgeAI v0.9 — multi-paradigm LD debate judge."""
     print_banner()
 
 
@@ -68,6 +69,8 @@ def cli() -> None:
 @click.option("--all", "select_all", is_flag=True, help="Judge every round in the inbox.")
 @click.option("--yes", "-y", "assume_yes", is_flag=True, help="Accept confirmation prompts automatically.")
 @click.option("--resolution", default=None, help="Round resolution; overrides auto-detection unless round.yaml supplies one.")
+@click.option("--aff", "aff_name", default=None, help="Aff speaker/team name; overrides transcript detection unless round.yaml supplies one.")
+@click.option("--neg", "neg_name", default=None, help="Neg speaker/team name; overrides transcript detection unless round.yaml supplies one.")
 @click.option(
     "--personas",
     default=None,
@@ -88,6 +91,8 @@ def new(
     select_all: bool,
     assume_yes: bool,
     resolution: Optional[str],
+    aff_name: Optional[str],
+    neg_name: Optional[str],
     personas: Optional[str],
     verbose: bool,
     runs: int,
@@ -118,6 +123,8 @@ def new(
         _run_one_round(
             round_input=round_input,
             resolution=resolution,
+            aff_name=aff_name,
+            neg_name=neg_name,
             paradigm_keys=paradigm_keys,
             verbose=verbose,
             runs=runs,
@@ -129,6 +136,8 @@ def new(
 def _run_one_round(
     round_input: RoundInput,
     resolution: Optional[str],
+    aff_name: Optional[str],
+    neg_name: Optional[str],
     paradigm_keys: list[str],
     verbose: bool,
     runs: int,
@@ -167,6 +176,8 @@ def _run_one_round(
     metadata = resolve_metadata(
         yaml_metadata=yaml_metadata,
         cli_resolution=resolution,
+        cli_aff=aff_name,
+        cli_neg=neg_name,
         detected_resolution=detected_resolution,
         detected_aff=participants.get("aff"),
         detected_neg=participants.get("neg"),
@@ -304,6 +315,42 @@ def _run_one_round(
 
     _archive_if_successful(round_input, round_id, result, paradigm_keys)
     click.echo("\n" + cost_line(result.input_tokens, result.output_tokens, result.cost_usd), err=True)
+
+
+@cli.command("retry")
+@click.argument("round_id")
+@click.option(
+    "--persona",
+    required=True,
+    type=click.Choice(list(PARADIGMS.keys()), case_sensitive=False),
+    help="Rejudge one saved paradigm in place.",
+)
+@click.option(
+    "--runs",
+    default=DEFAULT_RUNS,
+    show_default=True,
+    type=click.IntRange(1, 9),
+    help="Number of replacement runs for this paradigm.",
+)
+@click.option("--verbose", is_flag=True, help="Print model prompts/responses to stderr.")
+def retry(round_id: str, persona: str, runs: int, verbose: bool) -> None:
+    """Retry one paradigm for an existing saved round and refresh its diff."""
+    from .round_ops import retry_paradigm
+
+    store = LocalDiskBallotStore()
+    resolved = _resolve_single(store, round_id)
+    client = _build_reported_client(verbose=verbose)
+    key = persona.lower()
+    click.echo(
+        f"Retrying {PARADIGMS[key].display_name} for {resolved} with {runs} run(s)...",
+        err=True,
+    )
+    try:
+        result = retry_paradigm(client, store, resolved, key, runs=runs)
+    except (StorageError, ModelInvocationError, CredentialsError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"{PARADIGMS[key].display_name}: {result['decision']}", err=True)
+    click.echo(f"Updated {store.round_path(resolved)}", err=True)
 
 
 @cli.command("list")
@@ -623,6 +670,7 @@ def _persist_round(store, round_id, structured, metadata, result, round_input, q
         "paradigms": [verdict.paradigm for verdict in result.successful],
         "failed_paradigms": [verdict.paradigm for verdict in result.failures],
         "runs_per_paradigm": len(result.verdicts[0].runs) if result.verdicts else 0,
+        "runs_by_paradigm": {verdict.paradigm: len(verdict.runs) for verdict in result.verdicts},
         "decisions": {verdict.paradigm: verdict.decision for verdict in result.verdicts},
         "token_usage": result.token_usage(),
         "total_input_tokens": result.input_tokens,

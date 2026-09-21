@@ -237,6 +237,14 @@ class LocalDiskBallotStore(BallotStore):
     def load_diff(self, round_id: str) -> str:
         return self._read(round_id, DIFF_FILE)
 
+    def load_transcript(self, round_id: str) -> str:
+        """Load the saved structured transcript for a round."""
+        return self._read(round_id, TRANSCRIPT_FILE)
+
+    def load_flow(self, round_id: str) -> str:
+        """Load the saved shared flow for a round."""
+        return self._read(round_id, FLOW_FILE)
+
     def load_metadata(self, round_id: str) -> Dict[str, Any]:
         try:
             return json.loads(self._read(round_id, METADATA_FILE))
@@ -285,10 +293,17 @@ class LocalDiskBallotStore(BallotStore):
                     "aff": meta.get("aff"),
                     "neg": meta.get("neg"),
                     "paradigms": self.personas_for(round_id),
-                    "cost_usd": sum(
-                        entry.get("cost_usd", 0.0)
-                        for entry in usage.values()
-                        if isinstance(entry, dict)
+                    "decisions": meta.get("decisions") or {},
+                    "failed_paradigms": meta.get("failed_paradigms") or [],
+                    "runs_by_paradigm": meta.get("runs_by_paradigm") or {},
+                    "cost_usd": float(
+                        meta.get("total_cost_usd")
+                        if meta.get("total_cost_usd") is not None
+                        else sum(
+                            entry.get("cost_usd", 0.0)
+                            for entry in usage.values()
+                            if isinstance(entry, dict)
+                        )
                     ),
                     "has_diff": (path / DIFF_FILE).exists(),
                 }

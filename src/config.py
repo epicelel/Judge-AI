@@ -5,7 +5,7 @@ import logging
 import os
 import stat
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional
 
 CONFIG_DIR = Path.home() / ".judgeai"
 CONFIG_FILE = CONFIG_DIR / "config.json"
@@ -22,6 +22,16 @@ if not _logger.handlers:
 _PROVIDER_ENV = {
     "anthropic": "ANTHROPIC_API_KEY",
     "openai": "OPENAI_API_KEY",
+}
+
+_DEFAULT_GUI_SETTINGS = {
+    "default_runs": 3,
+    "default_paradigms": ["lay", "educated_lay", "traditional", "circuit"],
+}
+
+_MODEL_ENV = {
+    "anthropic": "ANTHROPIC_MODEL",
+    "openai": "OPENAI_MODEL",
 }
 
 
@@ -141,11 +151,81 @@ def set_provider_preference(provider: str) -> None:
     save_config(config)
 
 
+def get_model_preference(provider: str) -> Optional[str]:
+    """Return the configured model override for a provider, if any."""
+    provider = provider.lower()
+    env_var = _MODEL_ENV.get(provider)
+    if env_var and os.environ.get(env_var):
+        return os.environ[env_var]
+    return load_config().get(f"{provider}_model")
+
+
+def set_model_preference(provider: str, model_id: Optional[str]) -> None:
+    """Persist or clear a provider-specific model override."""
+    provider = provider.lower()
+    env_var = _MODEL_ENV.get(provider)
+    if env_var is None:
+        raise ValueError(f"Unsupported model provider: {provider}")
+
+    model = (model_id or "").strip()
+    config = load_config()
+    if model:
+        config[f"{provider}_model"] = model
+        os.environ[env_var] = model
+    else:
+        config.pop(f"{provider}_model", None)
+        os.environ.pop(env_var, None)
+    save_config(config)
+
+
+def get_gui_defaults() -> dict:
+    """Return validated GUI defaults without mutating persisted config."""
+    config = load_config()
+    try:
+        runs = int(config.get("default_runs", _DEFAULT_GUI_SETTINGS["default_runs"]))
+    except (TypeError, ValueError):
+        runs = _DEFAULT_GUI_SETTINGS["default_runs"]
+    if runs not in {1, 3, 5}:
+        runs = _DEFAULT_GUI_SETTINGS["default_runs"]
+
+    raw = config.get("default_paradigms", _DEFAULT_GUI_SETTINGS["default_paradigms"])
+    if not isinstance(raw, list):
+        raw = list(_DEFAULT_GUI_SETTINGS["default_paradigms"])
+    paradigms = [str(value) for value in raw if str(value).strip()]
+    if not paradigms:
+        paradigms = list(_DEFAULT_GUI_SETTINGS["default_paradigms"])
+    return {"default_runs": runs, "default_paradigms": paradigms}
+
+
+def set_gui_defaults(runs: int, paradigms: Iterable[str]) -> None:
+    """Persist the user's default run count and selected paradigms."""
+    runs = int(runs)
+    if runs not in {1, 3, 5}:
+        raise ValueError("Default runs must be 1, 3, or 5.")
+    cleaned = []
+    for paradigm in paradigms:
+        key = str(paradigm).strip()
+        if key and key not in cleaned:
+            cleaned.append(key)
+    if not cleaned:
+        raise ValueError("Choose at least one default paradigm.")
+
+    config = load_config()
+    config["default_runs"] = runs
+    config["default_paradigms"] = cleaned
+    save_config(config)
+
+
 def load_into_environment() -> None:
-    """Restore saved keys/preferences without overriding explicit environment values."""
+    """Restore saved keys/preferences/models without overriding explicit env values."""
     config = load_config()
     for provider, env_var in _PROVIDER_ENV.items():
         saved = config.get(f"{provider}_api_key")
+        if saved and not os.environ.get(env_var):
+            os.environ[env_var] = saved
+
+    for provider, env_var in _MODEL_ENV.items():
+        saved = config.get(f"{provider}_model")
         if saved and not os.environ.get(env_var):
             os.environ[env_var] = saved
 

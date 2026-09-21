@@ -40,6 +40,8 @@ PROMPTS = {
 # Provenance values recorded in `sources`.
 SOURCE_YAML = "round.yaml"
 SOURCE_FLAG = "--resolution flag"
+SOURCE_AFF_FLAG = "--aff flag"
+SOURCE_NEG_FLAG = "--neg flag"
 SOURCE_DETECTED = "auto-detected"
 SOURCE_TRANSCRIPT = "transcript-detected"
 SOURCE_PROMPT = "prompted"
@@ -335,6 +337,8 @@ def _default_prompt(label: str) -> str:
 def resolve_metadata(
     yaml_metadata: Optional[Dict[str, Optional[str]]] = None,
     cli_resolution: Optional[str] = None,
+    cli_aff: Optional[str] = None,
+    cli_neg: Optional[str] = None,
     detected_resolution: Optional[str] = None,
     detected_aff: Optional[str] = None,
     detected_neg: Optional[str] = None,
@@ -364,12 +368,17 @@ def resolve_metadata(
         meta.resolution = _clean(detected_resolution)
         meta.sources["resolution"] = SOURCE_DETECTED
 
-    # --- speakers: yaml > transcript detection > prompt ---
+    # --- speakers: yaml > explicit CLI override > transcript detection > prompt ---
     detected_speakers = {"aff": _clean(detected_aff), "neg": _clean(detected_neg)}
+    cli_speakers = {"aff": _clean(cli_aff), "neg": _clean(cli_neg)}
+    cli_sources = {"aff": SOURCE_AFF_FLAG, "neg": SOURCE_NEG_FLAG}
     for name in ("aff", "neg"):
         if _clean(supplied.get(name)):
             setattr(meta, name, _clean(supplied[name]))
             meta.sources[name] = SOURCE_YAML
+        elif cli_speakers[name]:
+            setattr(meta, name, cli_speakers[name])
+            meta.sources[name] = cli_sources[name]
         elif detected_speakers[name]:
             setattr(meta, name, detected_speakers[name])
             meta.sources[name] = SOURCE_TRANSCRIPT

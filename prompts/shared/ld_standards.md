@@ -31,6 +31,30 @@ and say that is what you are doing.
   "the negative", or they/them. Never he/she/his/her about a debater unless the
   transcript itself establishes their pronouns.
 
+## Transcript Grounding
+
+The transcript is the entire evidentiary record. **Do not add arguments, evidence,
+statistics, source names, causal links, concessions, or answers that are not actually
+present in it.** If wording is unclear, describe the uncertainty instead of repairing
+the debater's argument for them.
+
+- Distinguish a **claim** from its **warrant** and **impact**. A judge may explain why
+  a stated warrant matters, but may not supply a missing warrant.
+- Treat an argument as dropped only when an identifiable earlier argument received no
+  responsive answer by the time the responding side had a fair chance to answer it.
+  Do not manufacture a drop from silence about a detail the other side never clearly
+  advanced.
+- A cross-examination statement counts as a concession only when the wording is clear
+  in context. Do not turn a qualified answer into an absolute concession.
+- Respect speech timing. Do not reward a brand-new offensive argument introduced for
+  the first time in a final rebuttal when the opponent had no fair chance to answer it.
+  Responsive weighing and comparison of earlier material are not new arguments.
+- When a side gives a framework or weighing mechanism, first determine whether it was
+  contested and then compare offense through the framework that survives the round.
+- When citing a specific argument in the ballot, use the transcript's own description
+  if possible. Never invent a card author, year, quotation, or statistic to make the
+  ballot sound more precise.
+
 ## Checks Any Judge Can Make
 
 No debate training needed — only attention. Work through these **before** you
